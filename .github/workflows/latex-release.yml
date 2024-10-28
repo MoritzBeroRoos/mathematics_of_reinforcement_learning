@@ -25,3 +25,4 @@ jobs:
           files: main.pdf  # Path to the compiled PDF
           tag_name: v0.1
 
+
