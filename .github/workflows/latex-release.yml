@@ -1,0 +1,26 @@
+name: Compile and Release PDF
+
+on:
+  push:
+    branches:
+      - main  # Change this to the branch where you want this action to run
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: create pdf
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+
+      - name: Upload PDF to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: out/main.pdf  # Path to the compiled PDF
+
