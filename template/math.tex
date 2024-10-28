@@ -19,7 +19,7 @@
 \usepackage{fitch}[arrayenv=tabular]
 \usepackage[hidelinks]{hyperref}%dont show red rectangle around references
 \usepackage[capitalize,nameinlink]{cleveref}
-
+\usepackage{soul} % for breakable underline \ul
 
 
 
@@ -323,7 +323,7 @@ qed=\raisebox{-1.5pt}{\scalebox{1.0}{$\blacksquare$}}
 
 
 \let\oldemph\emph
-\renewcommand{\emph}[1]{\underline{\oldemph{#1}}}
+\renewcommand{\emph}[1]{\oldemph{\ul{#1}}}
 
 
 \newcommand{\matrixfunc}[2]{
@@ -399,7 +399,8 @@ qed=\raisebox{-1.5pt}{\scalebox{1.0}{$\blacksquare$}}
 \newcommand{\mydots}{\kern-0.10em.\kern-0.06em.\kern-0.06em.\kern-0.1em} % touching at \kern-0.1725em
 
 
-
+\newcommand*\diff{\mathop{}d}
+\newcommand*\Diff[1]{\mathop{}d^#1}
 
 \renewcommand{\powerset}[1]{\ensuremath{\operatorname{\mathcal{P}}(#1)}}
 
