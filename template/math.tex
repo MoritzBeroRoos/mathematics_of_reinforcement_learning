@@ -1,0 +1,406 @@
+% !TeX root = ..\main.tex
+% Erweiterungen in der mathematischen Umgebung
+
+\usepackage{lipsum}
+% Zum Einbinden von Grafiken
+\usepackage{graphicx}
+\usepackage{enumerate}
+\usepackage[shortlabels]{enumitem}
+
+\usepackage{tipa}%for arc between letters with \texttoptiebar{\phantom{A}}
+\usepackage{multicol}
+\usepackage[fleqn]{amsmath}
+\usepackage{amsthm,amssymb}
+\usepackage{aligned-overset}
+\usepackage{stmaryrd}%für den Widerspruchsblitz
+\usepackage{nccmath}
+\usepackage{thmtools}
+\usepackage{environ}
+\usepackage{fitch}[arrayenv=tabular]
+\usepackage[hidelinks]{hyperref}%dont show red rectangle around references
+\usepackage[capitalize,nameinlink]{cleveref}
+
+
+
+
+% Define a command to switch to Palatino Bold Italic (only for the theorem titles)
+\newcommand{\textpl}[1]{\begingroup\fontfamily{pplx}\selectfont#1\endgroup}
+\newcommand{\palantinobolditalic}[1]{\textit{\textbf{\textpl{#1}}}}
+
+%Defining a custom theorem Environment:
+\usepackage[most]{tcolorbox}
+\usepackage{scrhack}%might be needed for tcolorbox, since tcolorbox uses some KOMA deprecated stuff (see warning when removing \usepackage{scrhack})
+\usepackage{environ}
+\usepackage{changepage}%for indenting inlinelemma
+%save some settings for tcolorbox to reuse later for standard theorem etc
+\tcbset{
+    mytcbstyle/.style={
+        enhanced,
+        colback=white,          % Background color of the box
+        coltitle=black,         % Color of the theorem title text
+        colframe=black,         % Frame color
+        boxrule=0.5pt,          % Frame width
+        titlerule=0pt,          % No separation rule between title and content
+        toptitle=1mm,           % Space at the top inside the box (title)
+        bottomtitle=1mm,        % Space at the bottom inside the box (title)
+        detach title,           % Do not detach title from the content
+        sharp corners,          % Sharp corners
+        separator sign none,    % No separator sign
+        before skip = 10pt plus 2.5pt,
+        after skip = 10pt plus 2.5pt,
+    }
+}
+
+%save some settings for tcolorbox to reuse later for exercises
+\tcbset{
+    mytcbstyleforexercises/.style={
+        enhanced,
+        colback=white,          % Background color of the box
+        frame hidden,           %versteckt ramenlinien die übrig bleiben,obwohl man borderlines auf 0pt dicke hat
+        coltitle=black,         % Color of the theorem title text
+        colbacktitle=white,
+        colframe=black,         % Frame color
+        boxrule=0pt,          % Frame width
+        %borderline north={0.5pt}{0pt}{black}, 
+        borderline south={0.5pt}{0pt}{black}, % Horizontal line at the bottom
+        attach boxed title to top left={yshift=-1.2mm, xshift=0mm},
+        boxed title style={size = minimal, boxrule=0pt,colframe=white,},
+        left = 0pt,%padding von inhalt zur linken seite
+        boxsep = 0pt,%anderes padding von inhalt zur linken seite
+        titlerule=0pt,          % No separation rule between title and content
+        toptitle=1mm,           % Space at the top inside the box (title)
+        bottomtitle=1mm,        % Space at the bottom inside the box (title)
+        detach title,           % Do not detach title from the content
+        sharp corners,          % Sharp corners
+        separator sign none,    % No separator sign
+        before skip = 10pt plus 2.5pt,
+        after skip = 10pt plus 2.5pt,
+    }
+}
+
+%define custom theorem style
+\makeatletter
+\declaretheoremstyle[
+preheadhook=\renewcommand\@upn{},%to make the theoremnumber not always upright see https://tex.stackexchange.com/questions/91487/thmtools-issue-with-head-number-style
+numberwithin = section,
+spaceabove=6pt, %doesnt work because of tcolorbox?
+spacebelow=6pt, %doesnt work because of tcolorbox?
+headfont =\fontfamily{pplx}\bfseries\itshape\selectfont,
+headformat={\NUMBER\ \NAME: \quad\NOTE\medskip\\},
+headpunct =,
+notefont=\fontfamily{pplx}\bfseries\itshape\selectfont,%Same as title font, because its in the title
+notebraces={}{},%no braces
+bodyfont=\normalfont,
+postheadspace=1em,
+]{mystandardstyle}
+\makeatother
+
+
+%define custom INLINE theorem style
+\makeatletter
+\declaretheoremstyle[
+preheadhook=\renewcommand\@upn{},%to make the theoremnumber not always upright see https://tex.stackexchange.com/questions/91487/thmtools-issue-with-head-number-style
+numberwithin = section,
+spaceabove=6pt, %doesnt work because of tcolorbox?
+spacebelow=6pt, %doesnt work because of tcolorbox?
+headfont =\normalfont\itshape\bfseries\selectfont,
+headformat={\NAME:},
+headpunct =,
+notefont=\normalfont\itshape\selectfont,%Same as title font, because its in the title
+notebraces={}{},%no braces
+bodyfont=\normalfont,
+]{myinlinestyle}
+\makeatother
+
+%define theorem environments with the above style
+\declaretheorem[style=mystandardstyle,name=Definition]{mydefinition}
+\declaretheorem[style=mystandardstyle,name=Convention,sibling=mydefinition]{myconvention}
+\declaretheorem[style=mystandardstyle,name=Theorem,sibling=mydefinition]{mytheorem}
+\declaretheorem[style=mystandardstyle,name=Lemma,sibling=mydefinition]{mylemma}
+\declaretheorem[style=mystandardstyle,name=Corollary,sibling=mydefinition]{mycorollary}
+\declaretheorem[style=mystandardstyle,name=Remark,sibling=mydefinition]{myremark}
+\declaretheorem[style=mystandardstyle,name=Exercise,sibling=mydefinition]{myexercise}
+\declaretheorem[style=mystandardstyle,name=Example,sibling=mydefinition]{myexample}
+% Declare unnumbered versions
+\declaretheorem[style=myinlinestyle,name=Definition,numbered=no]{unnumberedmydefinition}
+\declaretheorem[style=myinlinestyle,name=Convention,numbered=no]{unnumberedmyconvention}
+\declaretheorem[style=myinlinestyle,name=Theorem,numbered=no]{unnumberedmytheorem}
+\declaretheorem[style=myinlinestyle, name=Lemma,numbered=no]{unnumberedmylemma}
+\declaretheorem[style=myinlinestyle,name=Corollary,numbered=no]{unnumberedmycorollary}
+\declaretheorem[style=myinlinestyle,name=Remark,numbered=no]{unnumberedmyremark}
+\declaretheorem[style=myinlinestyle,name=Exercise,numbered=no]{unnumberedmyexercise}
+\declaretheorem[style=myinlinestyle,name=Example,sibling=mydefinition]{unnumberedmyexample}
+%define the actually used environments with boxes around them
+\NewEnviron{definition}[1][]{
+    \begin{tcolorbox}[mytcbstyle]
+        % Check if the optional argument is provided
+        \ifstrempty{#1}{
+            % If no argument is provided, omit the brackets
+            \begin{mydefinition}
+                \BODY
+            \end{mydefinition}
+        }{
+            % If an argument is provided, use it
+            \begin{mydefinition}[#1]
+                \BODY
+            \end{mydefinition}
+        }
+    \end{tcolorbox}    
+}{}
+\NewEnviron{convention}[1][]{
+    \begin{tcolorbox}[mytcbstyle]
+        \ifstrempty{#1}{
+            \begin{myconvention}
+                \BODY
+            \end{myconvention}
+        }{
+            \begin{myconvention}[#1]
+                \BODY
+            \end{myconvention}
+        }
+    \end{tcolorbox}    
+}{}
+
+\NewEnviron{theorem}[1][]{
+    \begin{tcolorbox}[mytcbstyle]
+        % Check if the optional argument is provided
+        \ifstrempty{#1}{
+            % If no argument is provided, omit the brackets
+            \begin{mytheorem}
+                \BODY
+            \end{mytheorem}
+        }{
+            % If an argument is provided, use it
+            \begin{mytheorem}[#1]
+                \BODY
+            \end{mytheorem}
+        }
+    \end{tcolorbox}    
+}{}
+\NewEnviron{lemma}[1][]{
+    \begin{tcolorbox}[mytcbstyle]
+        \ifstrempty{#1}{
+            \begin{mylemma}
+                \BODY
+            \end{mylemma}
+        }{
+            \begin{mylemma}[#1]
+                \BODY
+            \end{mylemma}
+        }
+    \end{tcolorbox}    
+}{}
+\NewEnviron{inlinelemma}[1][]{
+    %\begin{adjustwidth}{1cm}{0cm} 
+        \begin{addmargin}[0.75cm]{2em}
+        \ifstrempty{#1}{
+            \begin{unnumberedmylemma}
+                \BODY
+            \end{unnumberedmylemma}
+        }{
+            \begin{unnumberedmylemma}[#1]
+                \BODY
+            \end{unnumberedmylemma}
+        }
+    \end{addmargin}
+    %\end{adjustwidth}
+}{}
+\NewEnviron{corollary}[1][]{
+    \begin{tcolorbox}[mytcbstyle]
+        \ifstrempty{#1}{
+            \begin{mycorollary}
+                \BODY
+            \end{mycorollary}
+        }{
+            \begin{mycorollary}[#1]
+                \BODY
+            \end{mycorollary}
+        }
+    \end{tcolorbox}    
+}{}
+\NewEnviron{remark}[1][]{
+        \ifstrempty{#1}{
+            \begin{unnumberedmyremark}
+                \BODY
+            \end{unnumberedmyremark}
+        }{
+            \begin{unnumberedmyremark}[#1]
+                \BODY
+            \end{unnumberedmyremark}
+        }  
+}{}
+
+\NewEnviron{example}[1][]{
+        \ifstrempty{#1}{
+            \begin{unnumberedmyexample}
+                \BODY
+            \end{unnumberedmyexample}
+        }{
+            \begin{unnumberedmyexample}[#1]
+                \BODY
+            \end{unnumberedmyexample}
+        }  
+}{}
+
+\NewEnviron{exercise}[1][]{
+    \begin{tcolorbox}[mytcbstyleforexercises]
+        \ifstrempty{#1}{
+            \begin{myexercise}
+                \BODY
+            \end{myexercise}
+        }{
+            \begin{myexercise}[#1]
+                \BODY
+            \end{myexercise}
+        }
+    \end{tcolorbox}    
+}{}
+
+
+
+%define theoremstyle for proof environment
+\makeatletter
+\declaretheoremstyle[
+preheadhook=\renewcommand\thmt@space{},%gets rid of space that is added to \NOTE via \thmt@space by redefining the command to be empty
+spaceabove=15pt minus 10pt, 
+spacebelow=17pt plus 3pt minus 5pt,
+headfont =\fontfamily{pplx}\bfseries\itshape\selectfont,
+headformat={\NOTE\vspace{2pt}},
+headindent=0pt,
+postheadhook={\hspace*{\parindent}\newline\thmt@amsthmlistbreakhack},
+headpunct =,
+notefont=\fontfamily{pplx}\bfseries\itshape\selectfont,%Same as title font, because its in the title
+notebraces={}{},%no braces
+bodyfont=\normalfont,
+qed=\raisebox{-1.5pt}{\scalebox{1.0}{$\blacksquare$}}
+]{myproofstyle}
+% Amsthm list break hack to reduce space before enumerate
+\def\thmt@amsthmlistbreakhack{%
+  \leavevmode
+  \vspace{-\baselineskip}%
+  \par
+  \everypar{\setbox\z@\lastbox\everypar{}}%
+}
+\makeatother
+%
+
+
+%define theoremstyle for inline proof environment
+\makeatletter
+\declaretheoremstyle[
+preheadhook=\renewcommand\thmt@space{},%gets rid of space that is added to \NOTE via \thmt@space by redefining the command to be empty
+spaceabove=15pt minus 10pt, 
+spacebelow=17pt plus 3pt minus 5pt,
+headfont =\normalfont\itshape\selectfont,
+headformat={\NOTE\ },
+headindent=0pt,
+headpunct =,
+notefont=\normalfont\itshape\selectfont,%Same as title font, because its in the title
+notebraces={}{},%no braces
+bodyfont=\normalfont,
+qed=\raisebox{-1.5pt}{\scalebox{1.0}{$\blacksquare$}}
+]{myinlineproofstyle}
+% Amsthm list break hack to reduce space before enumerate
+\def\thmt@amsthmlistbreakhack{%
+  \leavevmode
+  \vspace{-\baselineskip}%
+  \par
+  \everypar{\setbox\z@\lastbox\everypar{}}%
+}
+\makeatother
+%
+
+
+
+
+%define proof environment
+\declaretheorem[style=myproofstyle]{myproof}
+\declaretheorem[style=myinlineproofstyle]{myinlineproof}
+%overwrite amsthms proof environment
+\renewenvironment{proof}[1][Proof]{\begin{myproof}[#1]}{\end{myproof}}
+\newenvironment{inlineproof}[1][Proof]{\begin{myinlineproof}[#1]}{\end{myinlineproof}}
+
+
+
+\let\oldemph\emph
+\renewcommand{\emph}[1]{\underline{\oldemph{#1}}}
+
+
+\newcommand{\matrixfunc}[2]{
+    \begin{bmatrix}
+        #1           \\
+        \medmath{#2} \\%use package nccmath for \medmath
+    \end{bmatrix}}
+
+\newcommand{\twopartdef}[4]
+{
+    \left\{
+    \begin{array}{ll}
+        #1 & \text{if } #2 \\
+        #3 & \text{if } #4 \\
+    \end{array}
+    \right.
+}
+\newcommand{\longtwopartdef}[4]
+{
+    \left\{
+    \begin{array}{ll}
+        #1\\
+        \quad \text{falls } #2     \\
+        #3\\
+        \quad \text{sonst } #4     \\
+    \end{array}
+    \right.
+}
+
+\newenvironment{closealign}
+{\vspace{1.5ex}\par\noindent\hspace*{\mathindent}$\displaystyle\begin{aligned}}
+{\end{aligned}$\vspace{1.5ex}\par}
+
+\newenvironment{indented}
+{\vspace{1.5ex}\par\noindent\begin{addmargin}[\mathindent]{0em}}
+{\end{addmargin}\vspace{1.5ex}}
+
+
+
+
+%use smaller versions of \land via overwriting the command:
+\usepackage{MnSymbol}
+\let\MNbot\bot %save the bot symbol from MnSymbol
+\DeclareSymbolFont{origsymbols}     {OMS}{cmsy}{m}{n}
+\DeclareMathSymbol{\bot}{\mathord}{origsymbols}{"3F} %get the standard bot symbol back
+%\DeclareMathSymbol{\setminus}{\mathbin}{origsymbols}{"6E} %get old setminus back.
+
+\let\oldland\land
+\renewcommand{\land}{\wedge}
+\newcommand{\bigland}{\bigwedge}
+\let\oldor\lor
+\renewcommand{\lor}{\vee}
+\newcommand{\biglor}{\bigvee}
+\let\oldimplies\implies
+\renewcommand{\implies}{\rightarrow}
+
+\let\oldiff\leftrightarrow
+\renewcommand{\iff}{\leftrightarrow}
+\newcommand{\false}{\bot}
+
+%\renewcommand{\setminus}{\mathbin{\backslash}}
+
+
+
+
+\newcommand{\fa}[1]{\forall#1\:}
+\newcommand{\ex}[1]{\exists#1\:}
+\newcommand{\exu}[1]{\exists!#1\:}
+%Math Macros
+\newcommand{\gdw}{\text{\,\,\,gdw.\,\,\,\,}}
+\newcommand{\bzw}{\text{bzw.}}
+\newcommand{\varlist}{,\kern-0.10em.\kern-0.06em.\kern-0.06em.,} % touching at \kern-0.1725em
+\newcommand{\mydots}{\kern-0.10em.\kern-0.06em.\kern-0.06em.\kern-0.1em} % touching at \kern-0.1725em
+
+
+
+
+\renewcommand{\powerset}[1]{\ensuremath{\operatorname{\mathcal{P}}(#1)}}
+
+\newcommand{\quotes}[1]{``#1''}

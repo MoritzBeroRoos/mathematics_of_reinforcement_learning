@@ -1,0 +1,63 @@
+% !TeX root = ..\main.tex
+\documentclass[ngerman,10pt]{scrartcl}
+\usepackage{microtype} %für bessere Zeilenumbrüche
+
+% Keine Einrückung am Beginn eines Paragraphen
+\setlength{\parindent}{0pt}
+
+% Anpassung der Seitenränder
+%\usepackage[a4paper,left=1.9cm,right=7.3cm,top=3.0cm,bottom=4.8cm,marginparwidth=5.4cm,marginparsep=4.5mm,heightrounded]{geometry}%right ist der Platz vorgesehen für den margin, marginparwidth ist die Breite des Textes im margin, marginparsep ist der Abstand zum Haupttext, 
+
+\usepackage[a4paper,left=1.9cm,right=7.5cm,top=3.0cm,bottom=4.8cm,marginparwidth=5.4cm,marginparsep=7mm,heightrounded]{geometry}%right ist der Platz vorgesehen für den margin, marginparwidth ist die Breite des Textes im margin, marginparsep ist der Abstand zum Haupttext, 
+
+\setlength\evensidemargin{\oddsidemargin}
+%
+
+\usepackage{scrlayer-scrpage}
+\usepackage{scrlayer-notecolumn}
+% Define the note column
+\DeclareNewNoteColumn[
+    position=\oddsidemargin+1in+\textwidth+\marginparsep,
+    font=\normalfont\footnotesize % Optional font settings for the notes
+]{rightnotes}
+\newcommand{\note}[1]{\makenote[rightnotes]{#1}}%Marginnotes always on the right side
+
+%Ein \cite liefert keinen hyperlink wenn es als erstes im makenote ausgeführt wird. Daher muss man zuerst mit nocite es zur Bibliography hinzufügen.
+\newcommand{\notewithcite}[2]{\nocite{#1}\makenote[rightnotes]{#2}}%Marginnotes always on the right side
+%
+%
+%
+% Sprachpacket
+\usepackage{babel}
+
+% Die folgenden drei Packete sind für Umlaute wichtig
+\usepackage[utf8]{inputenc}
+\usepackage{csquotes}
+
+
+
+%Change font of all sectioning titles
+\setkomafont{sectioning}{\fontfamily{pplx}\fontseries{b}\selectfont}
+
+%set distance to text after \section{}
+%\RedeclareSectionCommands[
+%    afterskip=0.3em %
+%]{section}
+
+%\setkomafont{chapter}{\LARGE}
+%\setkomafont{section}{\large}
+%\setkomafont{subsection}{\normalsize}
+
+%Keine neue Zeile nach subsubsection
+\RedeclareSectionCommand[
+    runin=true,
+    afterskip = 2ex plus 0.5ex minus 0.1ex,
+]{subsubsection}
+
+%make Section numbering with paragraph sign
+%\renewcommand*{\thesection}{\S\arabic{section}}
+
+
+
+
+

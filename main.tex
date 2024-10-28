@@ -1,0 +1,100 @@
+% !TeX root = main.tex
+\input{template/layout.tex}
+\input{template/math.tex}
+
+
+
+
+
+
+\title{Mathematics of Reinforcement Learning}
+
+\author{Moritz Roos}
+\date{}
+%remove page number from tableofcontents page
+%\AtBeginDocument{\addtocontents{toc}{\protect\thispagestyle{empty}}}
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+
+\clearpage
+\section{Markov decision processes}
+
+\textbf{Goals:}
+\begin{itemize}
+    \item Develp a mathematical framework for dynamic decision making problems under uncertainty.
+    \item Lean how to solve these problems if the model is known.
+\end{itemize}
+
+\subsection{Definition of markov decision processes}
+We look for stochastic processes (a family of random variables indexed by time) \( \{S_n\}_{n \in  \mathbb{N}_0 }, \{A_n\}_{n \in \mathbb{N}_{0}} \{R_n\}_{n \in \mathbb{N}_{0}} \) modelling the dynamic evolution of states, actions and rewards.
+
+\begin{definition}[Markov decision model]
+    A \emph{Markov Decision Model} is a tuple \( (S, A, D, p, r ,\gamma) \) consisting of the following components:
+    \begin{enumerate}
+        \item a finite set \( S \)  called \emph{state space}.
+        \item a finite set \( A \) called \emph{action space}
+        \item a set \( D \subseteq S \times A \) whose elements are the \emph{admissible state-action pairs}  
+        \item a \emph{transition probability function} \( p: S \times S \times A \implies [0,1] \) 
+        \[
+            (s', s, a) \mapsto p(s' | s, a)\note{This is the probability of ending up in \( s' \) when performing action \( a \) in state \( s \). \( s \mapsto p(s| s,a) \) is a probability density function.}
+        \] satisfying 
+        \[
+            \sum_{s' \in S}p(s' | s, a) = 1
+        \] for all \( (s,a) \in S \times A \).
+        \item a \emph{reward function} \( r: D \to \mathbb{R} \)
+        \[
+            (s,a) \mapsto r(s,a)\note{The reward for performing action \( a \)  in state \( s \).}
+        \]
+        \item a \emph{discount factor} \( \gamma \in (0,1] \).\note{This encodes the time-value of rewards. \( \gamma^{-1}\cdot r(s,a) \) is the value at time \( 0 \) of receiving \( r(s,a) \) \( n \) steps into the future.}
+        
+    \end{enumerate} 
+\end{definition}
+
+
+\begin{definition}[Policy \qquad \( \Pi \)  \qquad \( \Pi_d \) ]\label{def_policy}
+    A \emph{policy} is a mapping \( \pi: S \times A \to [0,1] \)
+    \[
+        (s,a) \mapsto \pi(a|s)
+    \]
+    such that 
+    \[
+        \sum_{a \in A} \pi(a|s) = 1
+    \] for all \( s \in S \) and 
+    \[
+        \pi(a|s) = 0
+    \] for all \( s,a \in S\times A \setminus D\).
+
+    We say that \( \pi \) is a \emph{deterministic policy} if 
+    \[
+        \fa{s \in S:}\ex{a \in A:}\pi(a|s) = 1.
+    \] We write \( \Pi \) and \( \Pi_d \) for the set of all policies and the subset of deterministic policies respectively.
+
+\end{definition}
+
+To wit, \( \pi(a|s) \) is interpreted as the probability of choosing action \( a \) in state \( s \). One could also introduce \quotes{non-Markovian} policies which depend on the entire history of states and actions or \quotes{non-stationary} policies which depend on the current state and current time.
+However, we spare ourselves the trouble, since we will eventually see that there always is a \quotes{stationary, Markovian} optimal policy as in \cref{def_policy}.
+
+
+\ \\
+Intuitively, what happens for a given MDM and a policy \( \Pi \) is the following:
+
+\begin{itemize}
+    \item Start in an initial state \( S_{0}:= s_{0} \).
+    \item Using the policy \( \pi \), randomly draw an action \( A_{0} \) from \( a \mapsto \pi(a|S_{0}) \).
+    \item Collect the reward \( R_{0} := r(S_{0}, A_{0})\) and draw the next state \( S_{1} \) from \( s' \mapsto p(s'|S_{0}, A_{0}) \).
+    \item repeat this procedure to construct \( S_{0}, A_{0}, R_{0}, S_{1}, A_{1}, R_{1},\mydots \) 
+\end{itemize}
+
+Informally, we can then introduce the objective
+\[
+    \mathbb{E} \sum_{n=0}^{\infty} \gamma^{n} \cdot R_n = \mathbb{E} \sum_{n=0}^{\infty} \gamma^{n} \cdot r(S_{n}, A_{n}).
+\]
+
+
+
+
+
+\end{document}
