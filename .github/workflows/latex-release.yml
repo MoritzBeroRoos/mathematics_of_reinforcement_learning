@@ -18,20 +18,12 @@ jobs:
         uses: xu-cheng/latex-action@v3
         with:
           root_file: main.tex
-      - name: delete older releases
-        uses: sgpublic/delete-release-action@v1.1
-        with:
-          release-drop: true
-          release-keep-count: -1
-          release-drop-tag: true
-          pre-release-drop: true
-          pre-release-keep-count: -1
-          pre-release-drop-tag: true
-          draft-drop: true
-          draft-drop-count: -1
+
+      - name: Delete tag
+        run: gh release delete v0.1 --cleanup-tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+          
       - name: Upload PDF to Release
         uses: softprops/action-gh-release@v2
         with:
