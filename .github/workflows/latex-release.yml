@@ -23,11 +23,13 @@ jobs:
         run: gh release delete v0.1 --cleanup-tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Upload PDF to Release
         uses: softprops/action-gh-release@v2
         with:
           files: main.pdf  # Path to the compiled PDF
           tag_name: v0.1
+          name: Newest PDF
+          make_latest: true
 
 
