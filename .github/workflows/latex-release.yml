@@ -20,18 +20,17 @@ jobs:
           root_file: main.tex
 
       - name: Delete tag
-        run: gh release delete v0.1 --yes || true
+        run: gh release delete v0.1 --cleanup-tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload PDF to Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: main.pdf  # Path to the compiled PDF
-          tag_name: v0.1
-          name: Newest PDF
-          make_latest: true
-          draft: false
-          prerelease: false
+      - name: Create GitHub Release
+        run: |
+          gh release create v0.1 main.pdf \
+            --title "Newest PDF" \
+            --notes "Compiled PDF release" \
+            --latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
