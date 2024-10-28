@@ -20,7 +20,7 @@ jobs:
           root_file: main.tex
 
       - name: Delete tag
-        run: gh release delete v0.1
+        run: gh release delete v0.1 --yes || true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
