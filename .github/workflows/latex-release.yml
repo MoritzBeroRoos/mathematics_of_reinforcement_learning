@@ -28,7 +28,7 @@ jobs:
         run: |
           gh release create v0.1 main.pdf \
             --title "Newest PDF" \
-            --notes "Compiled PDF release" \
+            --notes "You can download the 'main.pdf' under 'Assets' (below this text)." \
             --latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
