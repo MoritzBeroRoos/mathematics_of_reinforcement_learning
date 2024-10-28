@@ -22,6 +22,6 @@ jobs:
       - name: Upload PDF to Release
         uses: softprops/action-gh-release@v2
         with:
-          files: out/main.pdf  # Path to the compiled PDF
+          files: main.pdf  # Path to the compiled PDF
           tag_name: v0.1
 
