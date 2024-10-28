@@ -14,23 +14,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: create pdf
+      - name: Create PDF
         uses: xu-cheng/latex-action@v3
         with:
           root_file: main.tex
 
-      - name: Delete tag
-        run: gh release delete v0.1 --cleanup-tag
+      - name: Set Release Tag
+        id: vars
+        run: echo "RELEASE_TAG=v$(date +'%Y_%m_%d_%H_%M_%S')" >> $GITHUB_ENV
+
+      - name: Delete All Previous Releases
+        run: |
+          for tag in $(gh release list --json tagName --jq '.[].tagName'); do
+            gh release delete "$tag" --yes --cleanup-tag
+          done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
         run: |
-          gh release create v0.1 main.pdf \
+          gh release create "$RELEASE_TAG" main.pdf \
             --title "Newest PDF" \
             --notes "You can download the 'main.pdf' under 'Assets' (below this text)." \
             --latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
