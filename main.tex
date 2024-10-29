@@ -43,7 +43,13 @@ We want to fix some terminology by the example of the Super Mario game.
 \end{itemize}
 
 
-
+\begin{figure}[ht]
+    \centering
+    %\caption{}
+    %\incsvg{path/}{path/file}
+    \incsvg{figures}{figures/examplemodell}
+    \label{fig:examplemodell}
+\end{figure}
 
 
 
@@ -64,21 +70,21 @@ We look for stochastic processes (a family of random variables indexed by time) 
     \begin{enumerate}
         \item a finite set \( S \)  called \emph{state space}.
         \item a finite set \( A \) called \emph{action space}
-        \item a set \( D \subseteq S \times A \) whose elements are the \emph{admissible state-action pairs}  
-        \item a \emph{transition probability function} \( p: S \times S \times A \implies [0,1] \) 
-        \[
-            (s', s, a) \mapsto p(s' | s, a)\note{This is the probability of ending up in \( s' \) when performing action \( a \) in state \( s \). \( s \mapsto p(s| s,a) \) is a probability density function.}
-        \] satisfying 
-        \[
-            \sum_{s' \in S}p(s' | s, a) = 1
-        \] for all \( (s,a) \in S \times A \).
+        \item a set \( D \subseteq S \times A \) whose elements are the \emph{admissible state-action pairs}
+        \item a \emph{transition probability function} \( p: S \times S \times A \implies [0,1] \)
+              \[
+                  (s', s, a) \mapsto p(s' | s, a)\note{This is the probability of ending up in \( s' \) when performing action \( a \) in state \( s \). \( s \mapsto p(s| s,a) \) is a probability density function.}
+              \] satisfying
+              \[
+                  \sum_{s' \in S}p(s' | s, a) = 1
+              \] for all \( (s,a) \in S \times A \).
         \item a \emph{reward function} \( r: D \to \mathbb{R} \)
-        \[
-            (s,a) \mapsto r(s,a)\note{The reward for performing action \( a \)  in state \( s \).}
-        \]
+              \[
+                  (s,a) \mapsto r(s,a)\note{The reward for performing action \( a \)  in state \( s \).}
+              \]
         \item a \emph{discount factor} \( \gamma \in (0,1] \).\note{This encodes the time-value of rewards. \( \gamma^{-1}\cdot r(s,a) \) is the value at time \( 0 \) of receiving \( r(s,a) \) \( n \) steps into the future.}
-        
-    \end{enumerate} 
+
+    \end{enumerate}
 \end{definition}
 
 
@@ -87,15 +93,15 @@ We look for stochastic processes (a family of random variables indexed by time) 
     \[
         (s,a) \mapsto \pi(a|s)
     \]
-    such that 
+    such that
     \[
         \sum_{a \in A} \pi(a|s) = 1
-    \] for all \( s \in S \) and 
+    \] for all \( s \in S \) and
     \[
         \pi(a|s) = 0
     \] for all \( s,a \in S\times A \setminus D\).
 
-    We say that \( \pi \) is a \emph{deterministic policy} if 
+    We say that \( \pi \) is a \emph{deterministic policy} if
     \[
         \fa{s \in S:}\ex{a \in A:}\pi(a|s) = 1.
     \] We write \( \Pi \) and \( \Pi_d \) for the set of all policies and the subset of deterministic policies respectively.
@@ -113,7 +119,7 @@ Intuitively, what happens for a given MDM and a policy \( \Pi \) is the followin
     \item Start in an initial state \( S_{0}:= s_{0} \).
     \item Using the policy \( \pi \), randomly draw an action \( A_{0} \) from \( a \mapsto \pi(a|S_{0}) \).
     \item Collect the reward \( R_{0} := r(S_{0}, A_{0})\) and draw the next state \( S_{1} \) from \( s' \mapsto p(s'|S_{0}, A_{0}) \).
-    \item repeat this procedure to construct \( S_{0}, A_{0}, R_{0}, S_{1}, A_{1}, R_{1},\mydots \) 
+    \item repeat this procedure to construct \( S_{0}, A_{0}, R_{0}, S_{1}, A_{1}, R_{1},\mydots \)
 \end{itemize}
 
 Informally, we can then introduce the objective
