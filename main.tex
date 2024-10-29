@@ -9,7 +9,7 @@
 
 \title{Mathematics of Reinforcement Learning}
 
-\author{Moritz Roos}
+\author{Notes by Moritz Roos}
 \date{}
 %remove page number from tableofcontents page
 %\AtBeginDocument{\addtocontents{toc}{\protect\thispagestyle{empty}}}
@@ -20,6 +20,34 @@
 
 
 \clearpage
+\section{Introduction}
+\textbf{Goals:}
+\begin{itemize}
+    \item Look at different types of problems.
+    \item Learn the basic principles of Reinforcement Learning (RL).
+    \item Lean when to apply RL and when not to?
+\end{itemize}
+
+\subsection{It's-a me, Mario!}
+We want to fix some terminology by the example of the Super Mario game.
+\begin{itemize}
+    \item \emph{Agent:} player
+    \item \emph{Environment:} game
+    \item \emph{state:} the frame/screen being presented to the agent
+    \item \emph{Action:} input on the controller
+    \item \emph{policy:} a correspondence between states and actions
+    \item \emph{episode:} one run of the game from start to finish
+    \item \emph{reward:} feedback mechanism telling you how good/bad an action performs in a given state
+    \item \emph{return:} criterion to be optimized, typically cumulative (discounted, expected) rewards
+    \item \emph{state dynamics:} how the next state is obtained from the current state and the current action
+\end{itemize}
+
+
+
+
+
+
+
 \section{Markov decision processes}
 
 \textbf{Goals:}
