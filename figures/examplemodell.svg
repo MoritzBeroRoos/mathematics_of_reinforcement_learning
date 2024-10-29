@@ -122,36 +122,36 @@
     <text
        xml:space="preserve"
        style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';stroke-width:0.264583"
-       x="26.839478"
-       y="39.111473"
+       x="25.691736"
+       y="38.228596"
        id="text2628"><tspan
          sodipodi:role="line"
          id="tspan2626"
          style="stroke-width:0.264583"
-         x="26.839478"
-         y="39.111473">Agent</tspan></text>
+         x="25.691736"
+         y="38.228596">Agent</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';stroke-width:0.264583"
-       x="112.03716"
-       y="37.875446"
+       x="109.21195"
+       y="38.405174"
        id="text7648"><tspan
          sodipodi:role="line"
          id="tspan7646"
          style="stroke-width:0.264583"
-         x="112.03716"
-         y="37.875446">Environment</tspan></text>
+         x="109.21195"
+         y="38.405174">Environment</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';stroke-width:0.264583"
-       x="67.716705"
-       y="59.329361"
+       x="67.451843"
+       y="58.976212"
        id="text19646"><tspan
          sodipodi:role="line"
          id="tspan19644"
          style="stroke-width:0.264583"
-         x="67.716705"
-         y="59.329361">next state</tspan></text>
+         x="67.451843"
+         y="58.976212">next state</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';stroke-width:0.264583"
