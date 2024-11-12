@@ -73,7 +73,7 @@ We look for stochastic processes (a family of random variables indexed by time) 
         \item a set \( D \subseteq S \times A \) whose elements are the \emph{admissible state-action pairs}
         \item a \emph{transition probability function} \( p: S \times S \times A \implies [0,1] \)
               \[
-                  (s', s, a) \mapsto p(s' | s, a)\note{This is the probability of ending up in \( s' \) when performing action \( a \) in state \( s \). \( s \mapsto p(s| s,a) \) is a probability density function.}
+                  (s', s, a) \mapsto p(s' | s, a)\note{This is the probability of ending up in \( s' \) when performing action \( a \) in state \( s \). \( s' \mapsto p(s'| s,a) \) is a probability mass function.}
               \] satisfying
               \[
                   \sum_{s' \in S}p(s' | s, a) = 1
@@ -95,7 +95,7 @@ We look for stochastic processes (a family of random variables indexed by time) 
     \]
     such that
     \[
-        \sum_{a \in A} \pi(a|s) = 1
+        \sum_{a \in A} \pi(a|s) = 1 \note{This means that \( a \mapsto \pi(a|s) \) is a probability mass function for each fixed \( s \) . Thus one action \textit{has} to be chosen.}
     \] for all \( s \in S \) and
     \[
         \pi(a|s) = 0
@@ -128,7 +128,26 @@ Informally, we can then introduce the objective
 \]
 
 
+Now we want to construct the mentioned stochastic processes. They should be consistent with our definition of MDM's and policies.\note{This can be seen as the formalization of the intuitive description of what should happen for a given MDM and a policy.} This enables us to make sense of notions like the expected return mentioned above.
 
+For this, the first ingredient is a probability space. We choose the sample space as 
+\[
+    \Omega := (S \times A)^\infty = \bigtimes_{n=0}^{\infty} (S \times A)
+\]
+and let the \( \sigma \)-algebra \( \mathcal{A} \) on \( \Omega \) be the power set \( \mathcal{P}(\Omega) \) of \( \Omega \). We can safely do so, since \( \Omega \) is countable. In fact, any element \( w \in \Omega  \) takes the form 
+\[
+    \omega = (s_{0},a_{0},s_{1},a_{1},s_{2},a_{2},\mydots)
+\]  
+where \(  \left\{ s_n \right\}_{n \in \mathbb{N}_{0}} \subseteq S, \left\{ a_n \right\}_{n \in \mathbb{N}_{0}} \subseteq A \). With that in mind, we define functions
+\[
+    S_n(\omega) = S_n((s_{0},a_{0},s_{1},a_{1},\mydots)) := s_n
+\]
+\[
+    A_n(\omega) = A_n((s_{0},a_{0},s_{1},a_{1},\mydots)) := a_n  
+\]
+for \( n \in \mathbb{N}_{0}, \omega \in \Omega \). 
 
-
+Then \( S_n, A_n \) trivially\note{Trivially, since we chose the power set as \( \sigma \)-algebra. } are measurable functions ( = random variables) taking values in \( S, A \) respectively.  What is left is showing that there exists a probability measure \( \mathbb{P}^\pi_\mu \) on \( (\Omega, \mathcal{A}) \) such that 
+\( S_{0},A_{0}, S_{1},A_{1},\mydots \) have the desired distribution.\note{The \( A \) 's should be determined by the policy and the last state. The \( S \) 's by the transition function and the taken action.}
+This can be constructed from \( p, \pi \)  and an initial distribution \( \mu \) on \( S \) such that \( S_{0} \sim \mu \).
 \end{document}
