@@ -150,4 +150,102 @@ for \( n \in \mathbb{N}_{0}, \omega \in \Omega \).
 Then \( S_n, A_n \) trivially\note{Trivially, since we chose the power set as \( \sigma \)-algebra. } are measurable functions ( = random variables) taking values in \( S, A \) respectively.  What is left is showing that there exists a probability measure \( \mathbb{P}^\pi_\mu \) on \( (\Omega, \mathcal{A}) \) such that 
 \( S_{0},A_{0}, S_{1},A_{1},\mydots \) have the desired distribution.\note{The \( A \) 's should be determined by the policy and the last state. The \( S \) 's by the transition function and the taken action.}
 This can be constructed from \( p, \pi \)  and an initial distribution \( \mu \) on \( S \) such that \( S_{0} \sim \mu \).
+
+What we would like to do is define
+\begin{align*}
+    \mathbb{P}_\mu^\pi [\left\{ \omega \right\}] &= \mathbb{P}_\mu^\pi[{(s_{0},a_{0},s_{1},a_{1},s_{2},a_{2},\mydots)}] \\
+    &:= \mu[\left\{ s_{0} \right\}] \cdot \pi(a_{0} | s_{0}) \cdot p(s_{1} | s_{0},a_{0}) \cdot \pi(a_{1} | s_{1}) \cdot p(s_{2}|s_{1},a_{1}) \cdot \pi(a_{2}|s_{2}) \cdot \mydots \\
+    &= \mu[\left\{ s_{0} \right\}] \pi(a_{0},s_{0}) \cdot \prod_{n=1}^\infty p(s_n | s_{n-1}, a_{n-1}) \pi(a_n | s_n) \\
+\end{align*}
+for all \( \omega = (s_{0},a_{0},s_{1},a_{1},\mydots) \in \Omega \).
+The problem is, however, that the resulting probability is usually zero, as this is an infinite product with factors valued in \( \left[ 0,1 \right] \).
+
+\begin{theorem}[Ionescu-Tulcea for MDMs]
+    \label{Ionescu-Tulcea}
+    Let \( S,A,D,p,r,\gamma \) be an MDM, \( \pi \) a policy, and \( \mu \) a probability measure on \( S \). Then there exists a unique probability measure \( \mathbb{P}_\mu^\pi \) on \( \Omega, \mathcal{A} \) with the property 
+    
+    \begin{align*}\label{Ionescu-Tulcea-eq}\tag{\textasteriskcentered}
+        \quad &\mathbb{P}_\mu^\pi[B \times \bigtimes_{k = n+1}^{\infty} (S \times A)] \\
+         &:= \sum_{(s_{0},a_{0},\mydots,s_n,a_n) \in B} \mu[{s_{0}}] \cdot \pi(a_{0}|s_{0}) \cdot \prod_{k=1}^n p(s_k | s_{k-1}, a_{k-1}) \cdot \pi(a_{k} | s_{k})\\
+    \end{align*}
+
+
+
+    for all \( B \subseteq (S \times A)^{n+1}, n \in \mathbb{N}_0 \). In particular, it holds that 
+    \begin{align*}\label{Ionescu-Tulcea-eq-2}\tag{\textasteriskcentered\textasteriskcentered}
+        \quad &\mathbb{P}_\mu^\pi [S_{0}=s_{0}, A_{0} = a_{0}, \mydots, S_n = s_n, A_n = a_n] \\
+        &= \mu[{s_{0}}] \cdot \pi(a_{0}|s_{0})\cdot \prod_{k=1}^{n} p(s_k | s_{-k-1}, a_{k-1}) \cdot \pi(a_k | s_k) \\
+    \end{align*} 
+
+    for all \( (s_{0},a_{0},s_{1},a_{1},\mydots,s_n, a_n) \in (S \times A)^{n+1}\) and \( n \in \mathbb{N}_{0} \).  \note{This doesnt yet mean that this \( \mathbb{P}_\mu^\pi \) agrees with \( p \) and \( \pi \). But it will be a consequence later.}
+\end{theorem}
+
+
+\begin{proof}[Proof (idea)]
+    The key idea is to take \eqref{Ionescu-Tulcea-eq} as a definition and extend it to the full \( \sigma \)-Algebra. Note that the sets of the form 
+    \[
+        B \times \bigtimes_{k=n+1}^{\infty} (S \times A) 
+    \] 
+    are an intersection stable ring of sets generating \( \mathcal{A} = \mathcal{P}(\Omega) \). Moreover, it is not hard to show that \( \mathbb{P}_\mu^\pi \) defined by \eqref{Ionescu-Tulcea-eq} is a well-defined additive set function.
+    
+    With a bit of work, one can show that \( \mathbb{P}_\mu^\pi \) is even \( \sigma \)-additive, hence it is a pre-measure. The existence and uniqueness of \( \mathbb{P}_\mu^\pi \) on all of \( \mathcal{A} \) is thus a direct consequence of Caratheodory's extension theorem.  
+    
+    Finally, note that 
+    \begin{align*}
+       &\left\{ S_{0}=s_{0}, A_{0},a_{0},\mydots,S_n = s_n, A_n = a_n \right\} \\
+        &= \left\{ (s_{0},a_{0},a_{1},a_{1},\mydots,s_n,a_n) \right\} \times \bigtimes_{k=n+1}^{\infty}(S \times A),\\
+    \end{align*}
+
+    so 
+    \begin{align*}
+        &\mathbb{P}_\mu^\pi \left[ S_{0}=s_{0}, A_{0},a_{0},\mydots,S_n = a_n  \right] \\
+        &\overset{\eqref{Ionescu-Tulcea-eq}}{=} \mu[\left\{ s_{0} \right\}] \pi(a_{0},s_{0}) \prod_{k=1}^{n} p(s_k | s_{k-1}, a_{k-1}) \pi(a_{k}|s_{k}).
+    \end{align*}
+\end{proof}
+
+
+Having constructed \( \mathbb{P}_\mu^\pi \), it is now straightforward to show that \( \left\{ S_n \right\}_{n \in \mathbb{N}_{0}}, \left\{ A_n \right\}_{n \in \mathbb{N}_{0}} \) have the desired properties under this measure.
+
+\begin{corollary}[Properties of \( \mathbb{P}_\mu^\pi \) ]
+    In the setting of \cref{Ionescu-Tulcea}, it holds that
+    \begin{enumerate}
+        \item \( \mathbb{P}_\mu^\pi[S_{0} = s] = \mu[\left\{ s \right\}], s \in S \)
+        \item \( \mathbb{P}_\mu^\pi [S_{n+1} = s' \,|\, S_n = s, A_n = a] = p(s' \,|\, s,a), n \in \mathbb{N}_{0}, s',s \in S, a \in A \)
+        \item  \( \mathbb{P}_\mu^\pi[A_{n} = a \,|\, S_{n} = s] = \pi(a | s) \)
+        \item \( \begin{aligned}[t]\note{This is the Markov property of the state action pair evolution.}
+             & \mathbb{P}_\mu^\pi [ S_{n+1} = s_{n+1}, A_{n+1} = a_{n+1} \,|\, S_{0} = s_{0}, A_{0} = a_{0}, \mydots, S_n = s_n, A_n = a_n] \\
+             &\quad =  \mathbb{P}_{\mu}^\pi[S_{n+1} = s_{n+1}, A_{n+1} = a_{n+1} \,|\, S_n = s_n, A_n = a_n]\\[0.2em]
+        \end{aligned} \)   for all \( (s_{0},a_{0},\mydots,s_{n+1}, a_{n+1}) \in (S \times A)^{n+2}, n \in \mathbb{N}_{0} \).
+        \item \( \mathbb{P}_\mu^\pi[S_{n+1} = s_{n+1} \,|\, S_{0} = s_{0},\mydots, S_n = s_n] = \mathbb{P}_\mu^\pi[ S_{n+1} = s_n \,|\, S_n = s_n]\) 
+        for all \( s_{0},s_{1},\mydots,s_{n+1} \in S^{n+1}, n \in \mathbb{N}_{0}\) if \( \pi \) is deterministic \note{That is, if for each \( s \in S \), there exists \( a \in A \) such that \( \pi(a | s) = 1 \).}.  
+    \end{enumerate}
+\end{corollary}
+
+
+\begin{proof}[Proof of (ii)]
+    
+It holds that
+\begin{align*}
+    &\mathbb{P}_\mu^\pi [S_{n+1} = s', S_n = s, A_n = a] \\
+    &= \sum_{a' \in A} \mathbb{P}_\mu^\pi[ S_{n+1} = s', A_{n+1} = a', S_{n} = s, A_{n} = a]\\
+    &\overset{\text{\cref{Ionescu-Tulcea}}}{=} \sum_{a' \in A} \sum_{(s_{0},a_{0}),\mydots,(s_{n-1},\mydots,a_{n-1}) \in S \times A} \bigg( \bigg. \mu[\left\{ s_{0} \right\}] \pi(a_{0}| s_{0}) \prod_{k=1}^{n-1} p(s_k | s_{k-1}, a_{k-1}) \pi(a_{k} | s_{k}) \\
+    & \cdot p(s | s_{n-1}, a_{n-1}) \pi(a | s) p(s' | s,a) \pi(a' | s')\bigg.\bigg)\\
+    &= p(s' | s, a) \sum_{a' \in A} \pi(a' | s') \cdot \sum_{(s_{0},a_{0}),\mydots,(s_{n-1},a_{n-1})} \mu[\left\{ s_{0} \right\}] \pi(a_{0},s_{0}) \prod_{k=1}^{n-1} p(s_{k} | s_{k-1}, a_{k-1}) \pi(a_{k} | s_{k}) p(s | s_{n-1}, a_{n-1}) \pi(a | s) \\
+    &= p(s' | s, a) \sum_{a' \in A} \pi(a' | s) \cdot \mathbb{P}_\mu^\pi [S_n = s, A_n = a] \\
+    &= p(s' | s, a) \cdot \mathbb{P}_\mu^\pi [ S_n = s , A_n = a].
+\end{align*}
+
+Thus 
+\begin{align*}
+    \mathbb{P}_\mu^\pi &[ S_{n+1} = s' \,|\, S_n = s , A_n = a]\\
+    &= \frac{\mathbb{P}_{\mu}^\pi [S_n =s ,A_n = a]}{\mathbb{P}_\mu^\pi[ S_n = s, A_n = a]}\\
+    &= p(s' | s, a).
+\end{align*}
+
+The rest follows by similar arguments.
+
+\end{proof}
+
+
+
 \end{document}
