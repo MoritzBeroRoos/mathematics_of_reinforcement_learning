@@ -174,7 +174,7 @@ The problem is, however, that the resulting probability is usually zero, as this
     for all \( B \subseteq (S \times A)^{n+1}, n \in \mathbb{N}_0 \). In particular, it holds that 
     \begin{align*}\label{Ionescu-Tulcea-eq-2}\tag{\textasteriskcentered\textasteriskcentered}
         \quad &\mathbb{P}_\mu^\pi [S_{0}=s_{0}, A_{0} = a_{0}, \mydots, S_n = s_n, A_n = a_n] \\
-        &= \mu[{s_{0}}] \cdot \pi(a_{0}|s_{0})\cdot \prod_{k=1}^{n} p(s_k | s_{-k-1}, a_{k-1}) \cdot \pi(a_k | s_k) \\
+        &= \mu[{s_{0}}] \cdot \pi(a_{0}|s_{0})\cdot \prod_{k=1}^{n} p(s_k | s_{k-1}, a_{k-1}) \cdot \pi(a_k | s_k) \\
     \end{align*} 
 
     for all \( (s_{0},a_{0},s_{1},a_{1},\mydots,s_n, a_n) \in (S \times A)^{n+1}\) and \( n \in \mathbb{N}_{0} \).  \note{This doesnt yet mean that this \( \mathbb{P}_\mu^\pi \) agrees with \( p \) and \( \pi \). But it will be a consequence later.}
@@ -247,5 +247,97 @@ The rest follows by similar arguments.
 \end{proof}
 
 
+Given \( s \in S \), we write \( \delta_s \) for the Dirac measure with mass on \( s \), that is 
+\[
+    \delta_s[\left\{ s \right\}] = 1, \quad \delta_s[\left\{ s' \right\}] = 0, s' \in S \setminus \left\{ s \right\}
+\]
+For any \( \pi \in \Pi  \), we then write \( PP_s^\pi := PP_{\delta_s}^\pi\) for the expectation operator with respect to \( PP_\mu^\pi \) and let \( \mathbb{E}_s^\pi = \mathbb{E}_{\delta_s}^\pi \).
+ 
+
+
+\subsection{Value Functions and bellman Equations}
+
+\begin{definition}[state value function]
+    For any \( \pi \in \Pi \), the function 
+    \[ V^\pi: S \to \mathbb{R}, s \mapsto V^\pi(s) := \mathbb{E}_s^\pi[\sum_{n=0}^{\infty}\gamma^n r(S_n, A_n)] \]
+    is called the \emph{state value function} (if it exists).
+    Moreover, if it exists, the function 
+    \[
+        V: S \to \mathbb{R}, s \mapsto V(s) := \sup_{\pi \in \Pi} V^\pi (s) = \sup_{\pi \in \Pi} \mathbb{E}_{s}^{\pi}[ \sum_{n=0}^{\infty} \gamma^n r(S_n, A_n)]
+    \] 
+    is called \emph{(optimal) value function}.
+
+    Finally, a policy \( \pi^\star \in \Pi \) such that \( V^{\pi^\star} := V(s) \) is called \emph{optimal} for the initial state \( s  S \). 
+
+\end{definition}
+
+\begin{remark}
+    \( V^\pi \) and \( V \) exist under very mild conditions indeed. Since \( S \) and \( A \) are finite, we conclude that \( |r| \) is bounded. A sufficient condition for the existence of \( V^\pi \) and \( V \) is hence \( \gamma < 1  \) as 
+    \[
+        \sum_{n=0}^{\infty} \gamma^n | r(S_n, A_n)| \leq \max_{(s,a) \in D} | r(a,s) | \sum_{n=0}^{\infty} \gamma^n = \frac{1}{1-\gamma} \max_{(s,a) \in D} |r(s,a)| \text{a.s.}
+    \]        
+    for all \( \mathbb{P}_s^\pi \). If the MDM has a finite time horizon, meaning that there is \( N \in \mathbb{N}_{0} \) s.t. \( r(S_n, A_n) = 0 \fa{n \geq N}  \mathbb{P}_s^\pi-\text{a.s.}\) for all \( s \in S,  \in \Pi \), we do not have to assume \( \gamma < 1 \).
+
+\end{remark}
+
+\emph{Standing Assumption:} There exists some \( C > 0 \) s.t. 
+\[
+    \sum_{n=0}^{\infty} \gamma^n | r(S_n, A_n) \leq C \mathbb{P}_s^\pi-\text{a.s.}
+\] 
+for all \(  \in \Pi, s \in S\). 
+While it may seem odd that we are now working with an entire family of optimization problems \( \left\{ V(s) \right\}_{s \in S} \), it is not hard to imagine, that these problems are intimately related and we can learn somethig from that connection.
+
+\begin{lemma}[Time shift]
+    \label{time_shift_lemma}
+    Let \( s,s' \in S, a \in A \), and \( \pi \in \Pi \).
+    Define 
+    \[
+        \mathbb{P}_{s,\text{a.s.}}^\pi := \mathbb{P}_s^\pi[ \cdot \,|\, S_{0} = s, A_{0} = a, S_{1} = s']
+    \] 
+    and 
+    \[
+        \hat{S_n} := S_{n+1}, \hat{A}_n := A_{n+1}, n \in \mathbb{N}_{0}
+    \]
+    then the distribution of \( \left\{ (\hat{S}_n, \hat{A}_n) \right\}_{n \in \mathbb{N}_{0}} \) under \( \mathbb{P}_{s,\text{a.s.}}^\pi \) is the same as the distribution of 
+    \( \left\{ (S_n, A_n) \right\}_{n \in \mathbb{N}_{0}} \) under \( \mathbb{P}_{s'}^\pi \).    
+\end{lemma}
+
+\begin{proof}
+    For \(  n  \in \mathbb{N}_{0}, (s_{0},a_{0},s_{1},a_{0},\mydots,s_n,a_n) \in (S\times A)^{n+1} \), it suffices to show
+
+    \[
+        \mathbb{P}_{s,a,s}^\pi [ \hat{S}_0 = s_{0}, \hat{A}_{0} = a_{0}, \mydots, \hat{S}-n = s_n, \hat{A}_n = a_n] = \mathbb{P}_{s'}^\pi [S_0 = s_{0}, A_{0} = a_{0}, \mydots, S_n = s_n, A_n = a_n].
+    \]
+    The identity is immediate from the definitions, if \( s_{0} \neq s' \) since both sides are zero in that case. So assume further that \( s_{0} = s' \).  
+    Then we have
+
+    \begin{align*}
+        &\mathbb{P}_{s,a,s}^\pi[\hat{S}_0 = s', \hat{A}_{0} = a_{0}, \mydots, \hat{S}_n = s_n, \hat{A}_n = a_n] \\
+        &= \mathbb{P}_s^\pi[ \hat{S}_{0} = s', \hat{A}_{0} = a_{0}, \mydots, \hat{S}_{0} = s_n, \hat{A}_n = a_n \,|\, S_{0} = s, A_{0} = a, S_{1} = s'] \\
+        &= \mathbb{P}_s^\pi [S_{0} =s, A_{0}= a, S_1 = s', A_{1} = a_{0}, \mydots, S_{n+1} = s_n, A_{n+1} = a_n] / \mathbb{P}_s^\pi[S_0 = s, A_{0} = a, s_n = s']\\
+        &= \frac{\delta_s[\left\{ s \right\}] \pi(a|s) p(s' | s,a) \pi(a_{0}|s') \prod_{k=1}^n p(s_k | s_{k-1}, a_{k-1}) \pi(a_k | s_k)}{\delta_s[\left\{ s \right\}] \pi(a | s) p(s' | s,a)} \\
+        &= \delta_{s'}[\left\{ s' \right\}] \pi(a_{0} | s') \prod_{k=1}^n p(s_k | s_{k-1}, a_{k-1}) \pi(a_k, s_k) = \mathbb{P}_{s'}^\pi[ S_{0} = s', A_{0} = a_{0}, \mydots, S_n = s_n, A_n = a_n]\\ 
+    \end{align*}
+\end{proof}
+
+
+\begin{theorem}[Bellman Equation]
+    Let \( s \in S, \pi   \). Then 
+    \begin{align*}
+                V^\pi(s) &= \sum_{s'  S, a \in A} \left[ r(s,a) + \gamma V^\pi(s')  \right] (a | s) p(s' | s,a)\\
+                 &= \mathbb{E}_s^\pi \left[ r(S_{0},A_{0}) + \gamma V^\pi(s_{1}) \right] \\
+    \end{align*}
+\end{theorem}
+\begin{proof}
+    We have 
+    \begin{align*}
+        V^\pi(s) &= \mathbb{E}_s^\pi \left[  \sum_{n=0}^{\infty}\gamma^n r(S_n, A_n) \right] \\
+        &= \sum_{s' \in S, a\in A} \mathbb{E}_s^\pi \left[ r(S_{0},A_{0}) + \gamma\cdot \sum_{n=1}^\infty \gamma^{n-1} r(S_n, A_n)    \,|\, S_{0} = s, A_{0} = a, S_{1} = s' \right] \cdot \mathbb{P}_s \left[ S_{0} = s, A_{0} = a, S_{1} = s' \right]\\
+        &= \sum_{s' \in s, a \in A} \left[ r(s,a) + \gamma \mathbb{E}_s^\pi \left[ \sum_{n=1}^\infty \gamma^{n-1} r(S_n, A_n) | S = s, A_{0} = a, S_{1} = s' \right] \right] \pi(a|s) p(s'| s,a) \\
+        &= \sum_{s' \in S, a \in A }\left[ r(s,a) + \gamma \mathbb{E}_{s'}^\pi \left[ \sum_{n=0}^{\infty} \gamma^n r(S_n, A_n) \right] \right] \\
+        &= \sum_{s' \in S, a \in A} \left[ r(s,a) + \gamma V^\pi(s') \right] \pi(a| s) p(s' | s,a)
+    \end{align*}
+    where \( \sum_{n=1}^{\infty} \gamma^{n-1} r(S_n, A_n)  = \sum_{n=0}^{\infty} \gamma^n r(\hat{S}_n, \hat{A}_n) \sim \sum_{n=0}^{\infty} \gamma^n r(S_n, A_n)\) under \( \mathbb{P}_{s'}^\pi \) by \cref{time_shift_lemma}.  
+\end{proof}
 
 \end{document}
