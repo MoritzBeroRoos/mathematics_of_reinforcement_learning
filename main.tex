@@ -238,7 +238,7 @@ It holds that
 Thus 
 \begin{align*}
     \mathbb{P}_\mu^\pi &[ S_{n+1} = s' \,|\, S_n = s , A_n = a]\\
-    &= \frac{\mathbb{P}_{\mu}^\pi [S_n =s ,A_n = a]}{\mathbb{P}_\mu^\pi[ S_n = s, A_n = a]}\\
+    &= \frac{\mathbb{P}_{\mu}^\pi [S_{n+1} = s, S_n =s ,A_n = a]}{\mathbb{P}_\mu^\pi[ S_n = s, A_n = a]}\\
     &= p(s' | s, a).
 \end{align*}
 
@@ -251,7 +251,7 @@ Given \( s \in S \), we write \( \delta_s \) for the Dirac measure with mass on 
 \[
     \delta_s[\left\{ s \right\}] = 1, \quad \delta_s[\left\{ s' \right\}] = 0, s' \in S \setminus \left\{ s \right\}
 \]
-For any \( \pi \in \Pi  \), we then write \( PP_s^\pi := PP_{\delta_s}^\pi\) for the expectation operator with respect to \( PP_\mu^\pi \) and let \( \mathbb{E}_s^\pi = \mathbb{E}_{\delta_s}^\pi \).
+For any \( \pi \in \Pi  \), we then write \( \mathbb{P}_s^\pi := \mathbb{P}_{\delta_s}^\pi\) for the expectation operator with respect to \( \mathbb{P}_\mu^\pi \) and let \( \mathbb{E}_s^\pi = \mathbb{E}_{\delta_s}^\pi \).
  
 
 
