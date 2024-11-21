@@ -282,7 +282,7 @@ For any \( \pi \in \Pi  \), we then write \( \mathbb{P}_s^\pi := \mathbb{P}_{\de
 
 \emph{Standing Assumption:} There exists some \( C > 0 \) s.t. 
 \[
-    \sum_{n=0}^{\infty} \gamma^n | r(S_n, A_n) \leq C \mathbb{P}_s^\pi-\text{a.s.}
+    \sum_{n=0}^{\infty} \gamma^n | r(S_n, A_n)| \leq C\quad  \mathbb{P}_s^\pi-\text{a.s.}
 \] 
 for all \(  \in \Pi, s \in S\). 
 While it may seem odd that we are now working with an entire family of optimization problems \( \left\{ V(s) \right\}_{s \in S} \), it is not hard to imagine, that these problems are intimately related and we can learn somethig from that connection.
@@ -324,7 +324,7 @@ While it may seem odd that we are now working with an entire family of optimizat
 \begin{theorem}[Bellman Equation]
     Let \( s \in S, \pi   \). Then 
     \begin{align*}
-                V^\pi(s) &= \sum_{s'  S, a \in A} \left[ r(s,a) + \gamma V^\pi(s')  \right] (a | s) p(s' | s,a)\\
+                V^\pi(s) &= \sum_{s'  S, a \in A} \left[ r(s,a) + \gamma V^\pi(s')  \right] \pi(a | s) p(s' | s,a)\\
                  &= \mathbb{E}_s^\pi \left[ r(S_{0},A_{0}) + \gamma V^\pi(s_{1}) \right] \\
     \end{align*}
 \end{theorem}
