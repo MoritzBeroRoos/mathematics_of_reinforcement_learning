@@ -326,6 +326,7 @@ While it may seem odd that we are now working with an entire family of optimizat
     \begin{align*}
                 V^\pi(s) &= \sum_{s' \in S, a \in A} \left[ r(s,a) + \gamma V^\pi(s')  \right] \pi(a | s) p(s' | s,a)\\
                  &= \mathbb{E}_s^\pi \left[ r(S_{0},A_{0}) + \gamma V^\pi(s_{1}) \right] \\
+                 \bigg(&= \sum_{a \in A} \left[ r(s,a) + \gamma \sum_{s' \in S} p(s' | s,a) V^\pi(s')\right] \pi(a | s)\bigg) \note{The part in square brackets will get its own name in the next definition.}
     \end{align*}
 \end{theorem}
 \begin{proof}
@@ -339,5 +340,144 @@ While it may seem odd that we are now working with an entire family of optimizat
     \end{align*}
     where \( \sum_{n=1}^{\infty} \gamma^{n-1} r(S_n, A_n)  = \sum_{n=0}^{\infty} \gamma^n r(\hat{S}_n, \hat{A}_n) \sim \sum_{n=0}^{\infty} \gamma^n r(S_n, A_n)\) under \( \mathbb{P}_{s'}^\pi \) by \cref{time_shift_lemma}.  
 \end{proof}
+
+
+\begin{definition}[\( Q^\pi \) \qquad \( Q \) ]
+    For any \( \pi \in \Pi \), we refer to \( Q^\pi: S \times A \to \mathbb{R} \),
+    \[
+        (s,a) \mapsto Q^\pi(s|a) := r(s,a) + \gamma \cdot \sum_{s' \in S} p(s' | s,a) \cdot V^\pi(s')
+    \]  
+    as the \emph{action value function} for the policy \( \pi \). \\
+    
+    Similarly we call \( Q: S \times A \to R \), 
+    \[  
+        (s,a) \mapsto Q(s|a) := r(s,a) + \gamma \cdot \sum_{s' \in S} p(s' | s,a) \cdot V(s')
+    \]
+    the \emph{optimal action value function}.
+\end{definition}
+
+Clearly
+\[
+    V^\pi(s) = \sum_{a \in A} Q^\pi (s|a) \cdot \pi(a|s) 
+\]
+and we \textit{expect} 
+\[
+    V(s) = \max_{a \in A(s)} Q(s|a),
+\]
+where 
+\(  A(s) := \left\{  a \in A: (s,a) \in D \right\} \) are the admissible actions in state \( s \in S\).
+
+Since 
+\[  
+    V^\pi(s) = \sum_{s' \in S, a \in A} \left[ r(s,a) + \gamma \cdot V^\pi(s') \right] \pi(a|s) \cdot p(s' | s,a)
+\] for \( s \in S \) we see that \( V^\pi \) can be computed by solving a linear system of equations\note{This really is feasible in practice, if the state space is small enough!}. 
+
+Similarly, we have
+\[  
+    Q^\pi(s|a) = r(s,a) + \gamma \cdot \sum_{s' \in S} p(s' | s,a) \cdot \sum_{a' \in A} \pi(a' | s') \cdot Q^\pi (s' | a') 
+\]
+for all \( (s,a) \in S \times A \). 
+If \( \pi^* \) is optimal, it clearly also satisfies the Bellman equation. 
+It is therefore not surprising, that there is a variant of the Bellman equation for the optimal value function \( V \).
+For any \( \pi \in \Pi \), we have 
+
+\begin{align*}
+      V^\pi(s) &= \sum_{a' \in A(s)} \left[ r(s, a') + \gamma \cdot \sum_{s' \in S}p(s'| s, a') \cdot V^\pi(s') \right] \cdot \pi(a' | s) \note{If \( a' \notin A(s) \) then \( \pi(a') = 0 \). }   \\
+      &\leq \max_{a \in A(s)} \left[ r(s,a) + \gamma \cdot \sum_{ s' \in S} p(s' | s,a) \cdot V^\pi(s') \right] \cdot \sum_{a' \in A(s)} \pi(a' | s)\\
+      &\leq \max_{a \in A(s)} \left[ r(s,a) + \gamma \cdot \sum_{ s' \in S} p(s' | s,a) \cdot V(s') \right] \cdot \sum_{a' \in A(s)} \pi(a' | s)\\
+      &= \max_{a \in A(s)} \left[ r(s,a) + \gamma \cdot \sum_{ s' \in S} p(s' | s,a) \cdot V(s') \right] \cdot 1
+\end{align*}
+for any \( \pi \).
+So also 
+\[
+    V(s) = \max_{\pi \in \Pi} V^\pi(s) \leq  \max_{a \in A(s)} \left[ r(s,a) + \gamma \cdot \sum_{ s' \in S} p(s' | s,a) \cdot V(s') \right].
+\]
+
+The reverse inequality will now only be derived heuristically:
+Suppose that we allow non-stationary policies \( \pi_a^\epsilon \) which first choose a fixed action \( a \in A(s) \) and for any \( s' \in S \) and fixed \( \epsilon > 0 \) follow an \( \epsilon \)-optimal policy \( \pi^{s'} \), meaning \( V^{\pi^{s'}} \geq V(s') - \epsilon \).
+The Bellman equation then suggests that \note{We haven't actually proven that it also holds for non-stationary policies.} 
+\begin{align*}
+     V(s) &\geq V^{\pi_a^\epsilon}(s)\\
+          &= \sum_{a' \in A} \left[ r(s, a') + \gamma \cdot \sum_{s' \in S} p(s' | s,a) \cdot V^{\pi_a^\epsilon}(s) \right] \cdot \pi(a'|s) 
+          \note{\( V^{\pi_a^\epsilon}(s') = V^{\pi^{s'}}(s') \) and \( \pi(a'|s) = 1 \) iff \( a' = a \)   }\\
+          &= r(s,a) + \gamma \cdot \sum_{s' \in S} p(s' | s,a) \cdot V^{\pi^{s'}}(s') \\
+          &\geq r(s,a) + \gamma \cdot \sum_{s' \in S} p(s'|s,a) \left[ V(s')-\epsilon \right]
+\end{align*}
+for arbitrary \( a \in A(s)  \) and \( \epsilon > 0 \).  
+so
+\[
+    V(s) \geq \max_{a \in A(s)} \left[ r(s,a) + \gamma \cdot \sum_{s' \in S} p(s'|s,a) \cdot V(s') \right].
+\]
+
+
+
+
+
+
+
+
+
+\begin{theorem}[Bellman Optimality Equation]
+Let \( W: S \to \mathbb{R}  \) satisfy the \emph{Bellman optimality equation},
+i.e. 
+\[
+    W(s) = \max_{a \in A(s)} \left[ r(s,a) + \gamma \cdot \sum_{s' \in S} p(s'|s,a) \cdot W(s') \right].
+\]
+Let moreover \( \pi^* \in \Pi \) be a policy with the property
+\[
+    \pi^*(a|s) > 0 \implies a \in \argmax_{a \in A(s)} \left[ r(s,a) + \gamma \cdot \sum_{s' \in S} p(s' | s,a) \cdot W(s') \right].
+\]
+If in addition 
+\[
+    \lim_{n \to \infty} \gamma^n W(S_n) = 0 \,\, \mathbb{P}_s^{\pi^*}\text{-a.s.} \fa{s \in S}
+\]
+and 
+\[
+    \limsup_{n \to \infty} \gamma^n W(S_n) \geq 0 \,\, \mathbb{P}_s^\pi\text{-a.s.} \fa{s \in S, \pi \in \Pi}, \]
+    then \( \pi^* \) is optimal for \textit{all} initial states \( s \in S \) and \( W = V \).   
+\end{theorem}
+\begin{proof}
+For any \( s \in S  \) and \( \pi \in \Pi \), we have 
+\begin{align*}
+    W(s) &= \max_{a \in A(s)} \left[ r(s,a) + \gamma \cdot \sum_{s' \in S} p(s_1 | s, a_{0}) \cdot W(s_{1}) \right] \\
+    &\geq \note{Here we have equality if \( \pi = \pi^* \). }\sum_{a_{0} \in A} \left[ r(s, a_{0}) + \gamma \cdot \sum_{s_{1} \in S}p(s_{1} | s,a_{0}) \cdot W(s_{1})  \right] \cdot \pi(a_{0} | s)\\
+    &= \sum_{(s_{0},a_{0}) \in S \times A} \left[ r(s_{0},a_{0}) + \gamma \cdot W(s_{1}) \right] \cdot \delta_s[\left\{ s_{0} \right\}] \cdot \pi(a_{0}|s_{0}) \cdot p(s_{1} | s_{0}, a_{0})\note{Now we can use the equation we derived until this point again for \( s = s_{1} \). }\\
+    &\geq \sum_{(s_{0},a_{0}) \in S \times A} \left[ r(s_{0},a_{0}) + \gamma \cdot \left( \sum_{a_{1} \in A, s_{2} \in S}(r(s_{1},a_{1}) + \gamma \cdot W(s_2)) \cdot \pi(a_{1}|s_{1}) \cdot p(s_{2}| s_{1},a_{1}) \right) \right] \\
+    & \qquad \qquad \qquad \cdot \delta_s[\left\{ s_{0} \right\}] \cdot \pi(a_{0}|s_{0}) \cdot p(s_{1} | s_{0}, a_{0})\\
+    &= \sum_{(s_{0},a_{0}),(s_{1},a_{1}) \in S \times A, s_{2} \in S} \left[ r(s_{0},a_{0}) + \gamma \cdot r(s_{1},a_{1}) + \gamma^2 \cdot W(s_2) \right]\\
+    &\qquad \qquad \qquad \cdot \delta_s[\left\{  s_{0} \right\}] \cdot \pi(a_{0}|s_{0}) \cdot p(s_{1}| s_{0},a_{0}) \cdot \pi(a_{1} | s_{1}) \cdot p(s_{2} | s_{1}, a_{1})\note{Now we can apply the equation again for \( W(s_2) \) etc\mydots }\\
+    &\geq \mydots \\
+    &\geq \sum_{(s_{0},a_{0}),\mydots,(s_n,a_n) \in S \times A, s_{n+1} \in S} \left[ \sum_{k=0}^n \gamma^k \cdot r(s_k, a_k) + \gamma^{n+1} \cdot W(s_{n+1}) \right]\\
+    &\qquad \qquad \qquad \cdot \delta_s[\left\{  s_{0} \right\}] \cdot \pi(a_{0}|s_{0}) \cdot \prod_{k=1}^n p(s_k | s_{k-1}, a_{k-1}) \cdot \pi(a_{k}| s_{k}) \cdot p(s_{n+1}|s_n, a_n)\\
+    &= \mathbb{E}_s^\pi \left[  \sum_{k=0}^{n} \gamma^k \cdot r(S_k, A_k) + \gamma^{n+1} W(S_{n+1}) \right] \\
+\end{align*}
+which converges against something which by dominated convergence is larger than 
+\[
+    \mathbb{E}_s^\pi \left[ \sum_{n=0}^{\infty} \gamma^n \cdot r(S_n, A_n) \right] = V^\pi(s).
+\]
+Similarly for \( \pi = \pi^* \) we get equalities \textit{everywhere}, so \( W(s) = V^{\pi^*}(s). \)
+Hence
+\[
+    V^{\pi^*} = W \geq \sup_{\pi \in \Pi} V^\pi = V \geq V^{\pi^*},
+    \]
+so 
+\[
+    W = V = V^{\pi^*},
+\]
+thus \( \pi^*  \) is optimal for all states \( s \in S \).    
+\end{proof}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 \end{document}
