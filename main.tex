@@ -468,6 +468,154 @@ thus \( \pi^*  \) is optimal for all states \( s \in S \).
 \end{proof}
 
 
+\begin{theorem}[Existence of a fixed point]
+    Assume \( \gamma < 1  \) and define an operator \( \mathcal{T} \) acting on functions 
+    \( w: s \to \mathbb{R} \) via 
+    \[
+        \mathcal{T}[w](s) := \max_{a \in A(s)}\left[ r(s,a) + \gamma \cdot \sum_{s' \in S} p(s' | s,a) \cdot w(s') \right]
+    \]
+    Then \( \mathcal{T} \) has a unique fixed-point \( W: S \to \mathbb{R} \), that is
+    \[
+        W(s) = \mathcal{T}[W](s)
+    \]
+    for all \( s \in S \).\note{That means it solves the bellman optimality equation! This whole Theorem is just a rephrasing of the existence of a solution to a fixed-point problem.}
+\end{theorem}
+\begin{proof}
+    Exercise. Idea: Use Banach fixed-point theorem for the contraction \( \mathcal{T} \) (with rate \( \gamma \)) on some suitable space of functions with some suitable norm.
+\end{proof}
+
+
+
+With the previous theorem, we now have essentially our first algorithm to solve MDP's numerically:
+
+Starting from an arbitrary initial guess \( w_{0}: S \to \mathbb{R} \) for the value function define for all \( n \in \mathbb{N} \)
+\[
+    w_n := \mathcal{T}[w_{n-1}].
+\]
+By Banachs fixed-point theorem, if \( \gamma < 1\) this sequence of functions converges to the value function \( V \), the unique fixed point of \( \mathcal{T} \).
+An (approximate) optimal policy is obtained by choosing for each \( s \in S \), \textit{any} maximizer \( a^*(s) \in A(s) \) in \( \mathcal{T}[V](s) \), that is 
+\[
+    a^*(s) \in \argmax_{a \in A(s)} \left[ r(s,a) + \gamma \cdot \sum_{s' \in S} P(s' | s,a) \cdot V(s') \right].
+\]
+
+In particular, there always is a \emph{deterministic} optimal policy.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{Policy improvement and policy Iteration}
+
+The fixed point argument developed in the last section iteratively computes an approximation of \( V \) to solve the MDP.
+
+In this sectionm we instead develop an iterative Method which works on the level of policies.The key to constructing such an iteration is the following theorem.
+Standing Assumption for this section:
+
+\[
+    \lim_{n \to \infty} \gamma^n V^{\widetilde{\pi}}(S_n) = 0 \,\, \mathbb{P}_s^\pi \text{-a.s.} \text{for all } \pi, \widetilde{\pi} \in \Pi, s \in S
+\]
+
+
+\begin{theorem}[Policy improvement]
+    Let \( \pi, \pi' \in \Pi \) such that for all \( s \in S \) we have
+    \begin{equation}
+        \sum_{a \in A} \pi(a|s) Q^\pi(s|a) \leq \sum_{a \in A} \pi'(a|s) Q^\pi(s|a). \tag{\textasteriskcentered}\label{policy_improvement_eq}
+    \end{equation}
+    Then \( \pi' \) outperforms \( \pi \), that is 
+    \[
+        V^\pi \leq V^{\pi'}.
+    \]
+    Moreover if the inequality in \eqref{policy_improvement_eq} is strict in some state \( s_{0} \), then \( V^\pi(s_{0}) < V^{\pi'}(s_{0}) \).
+\end{theorem}
+
+\begin{remark}
+The right hand side of \eqref{policy_improvement_eq} can be interpreted as following the policy \( \pi' \) in the first time step, and then switching to \( \pi \). If this perfoms better than choosing \( \pi \) also for the first step, then \( \pi' \) is better overall.     
+\end{remark}
+
+
+\begin{proof}
+    Let \( s \in S \). 
+    Have 
+    \begin{align*}
+        V^\pi(s) &= \sum_{a \in A} \pi(a|s) \cdot Q^\pi(s|a) \\
+               &\leq \sum_{a \in A} \pi'(a|s) Q^\pi(s|a) \\
+               &=\note{by Definition of \( Q^\pi \)} \sum_{a \in A} \pi'(a|s) \cdot \left[ r(s,a) + \gamma \cdot \sum_{s' \in S} p(s' | s,a) \cdot V^\pi(s') \right]\\
+               &= \sum_{(s_{0},a_{0}) \in S \times A, s_{1} \in S} \left[ r(s_{0},a_{0}) + \gamma \cdot V^\pi(s) \right] \cdot \delta_s[s_{0}] \cdot \pi'(a_{0}|s_{0}) \cdot p(s_{1} | s_{0},a_{0}) \\
+               &= \mathbb{E}_s^{\pi'} \left[ r(S_{0},A_{0}) + \gamma \cdot V^\pi(S_{1})\right]\\
+               &\leq\mydots \note{Now we can use the until now already proven inequality again (\( N -1\) times), but for \( V^\pi(S_{1}) \) instead of for ??} \\
+               &\leq \mathbb{E}_s^{\pi'}\left[ \sum_{n=0}^N \gamma^n \cdot r(S_n, A_n) + \gamma^{N+1} \cdot V^\pi(S_{N+1}) \right]              \\ 
+    \end{align*}    
+    for any \( N \in \mathbb{N} \).
+    So 
+    \[
+        V^\pi(s) \leq \mathbb{E}_s^{\pi'} \left[ \sum_{n=0}^{\infty} \gamma^n \cdot r(S_n, A_n) \right]
+    \]
+    by limiting both sides and using dominated convergence to exchange limit with Expectation.
+
+    If the inequality in \eqref{policy_improvement_eq} is strict at \( s_{0} \), then all the our first inequality becomes strict. This strictness carries through to the end.
+\end{proof}
+
+
+The previous Theorem gives an easy way of improving a given policy \( \pi \in \Pi \) by choosing \( \pi'  \in \Pi\) s.t. 
+\[
+    \pi'(a^* | s) = 1 \text{ for some } a^* \in \argmax_{a \in A(s)} Q^\pi(s|a).
+\]
+
+This implies
+\[
+    \sum_{ a \in A}\pi(a|s) Q^\pi(s|a) \leq \sum_{a \in A} \pi'(a|s) \cdot Q^\pi(s|a),
+\]
+
+i.e. that \( \pi' \) is better than \( \pi \). We say that a \( \pi' \) chosen this way is \emph{greedy} w.r.t. \( Q^\pi \).
+More generally:
+
+\begin{definition}[\( \epsilon-greedy \)]
+    Let \( q: S \times A \to \mathbb{R}, \epsilon \in [0,1] \). A policy \( \pi \) is called 
+
+    \begin{enumerate}
+        \item \( \epsilon \)\emph{-greedy} w.r.t. \( q \) iff for each \( s \in S \)
+        \[
+            \pi(a|s) = \begin{cases}
+                (1-\epsilon) + \frac{\epsilon}{|A(s)|}, \text{ if } a=a^*(s)\\
+                \frac{\epsilon}{|A(s)|} \text{ if } a  A(s) \setminus \left\{ a^*(s) \right\}\\
+            \end{cases}
+        \]
+        for some \( a^*(s) \in \argmax_{ a \in A(s)} \left[ q(s,a) \right] \).
+        In case of \( \epsilon> 0 \), we simply speak of \( \pi \) beeing \emph{greedy} w.r.t. q.
+        \item \( \epsilon \)\emph{-soft}, iff
+        \[
+            \fa{a \in A(s), s \in S:} \pi(a|s) \geq \frac{\epsilon}{|A(s)|}.
+        \]
+    \end{enumerate}
+\end{definition}
+
+Formulated slightly differently, an \( \epsilon \)-greedy policy chooses an optimal action w.r.t. \( q \) with probability \( 1-e \) and a random action \note{The random action might give us the optimal action aswell in this formulation!} chosen uniformly from \( A(s) \) with prob. \( \epsilon \).
+
+\begin{corollary}[Greedy policy improvement]
+         Let \( \pi \in \Pi \) and choose \( \pi' \in \Pi \) greedy w.r.t \( Q^\pi \). Then 
+        \[
+            V^\pi \leq V^{\pi'}.
+        \]
+\end{corollary}
+
+
+
+
+
+
+
+
+
+
 
 
 
