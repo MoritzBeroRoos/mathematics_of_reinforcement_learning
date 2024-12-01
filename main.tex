@@ -598,7 +598,7 @@ More generally:
     \end{enumerate}
 \end{definition}
 
-Formulated slightly differently, an \( \epsilon \)-greedy policy chooses an optimal action w.r.t. \( q \) with probability \( 1-e \) and a random action \note{The random action might give us the optimal action aswell in this formulation!} chosen uniformly from \( A(s) \) with prob. \( \epsilon \).
+Formulated slightly differently, an \( \epsilon \)-greedy policy chooses an optimal action w.r.t. \( q \) with probability \( 1-\epsilon \) and a random action \note{The random action might give us the optimal action aswell in this formulation!} chosen uniformly from \( A(s) \) with prob. \( \epsilon \).
 
 \begin{corollary}[Greedy policy improvement]
          Let \( \pi \in \Pi \) and choose \( \pi' \in \Pi \) greedy w.r.t \( Q^\pi \). Then 
