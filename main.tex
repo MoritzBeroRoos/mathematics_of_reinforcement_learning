@@ -314,9 +314,10 @@ While it may seem odd that we are now working with an entire family of optimizat
     \begin{align*}
         &\mathbb{P}_{s,a,s'}^\pi[\hat{S}_0 = s', \hat{A}_{0} = a_{0}, \mydots, \hat{S}_n = s_n, \hat{A}_n = a_n] \\
         &= \mathbb{P}_s^\pi[ \hat{S}_{0} = s', \hat{A}_{0} = a_{0}, \mydots, \hat{S}_{0} = s_n, \hat{A}_n = a_n \,|\, S_{0} = s, A_{0} = a, S_{1} = s'] \\
-        &= \mathbb{P}_s^\pi [S_{0} =s, A_{0}= a, S_1 = s', A_{1} = a_{0}, \mydots, S_{n+1} = s_n, A_{n+1} = a_n] / \mathbb{P}_s^\pi[S_0 = s, A_{0} = a, s_n = s']\\
+        &= \mathbb{P}_s^\pi [S_{0} =s, A_{0}= a, S_1 = s', A_{1} = a_{0}, \mydots, S_{n+1} = s_n, A_{n+1} = a_n] \,/\, \mathbb{P}_s^\pi[S_0 = s, A_{0} = a, s_n = s']\\
         &= \frac{\delta_s[\left\{ s \right\}] \pi(a|s) p(s' | s,a) \pi(a_{0}|s') \prod_{k=1}^n p(s_k | s_{k-1}, a_{k-1}) \pi(a_k | s_k)}{\delta_s[\left\{ s \right\}] \pi(a | s) p(s' | s,a)} \\
-        &= \delta_{s'}[\left\{ s' \right\}] \pi(a_{0} | s') \prod_{k=1}^n p(s_k | s_{k-1}, a_{k-1}) \pi(a_k, s_k) = \mathbb{P}_{s'}^\pi[ S_{0} = s', A_{0} = a_{0}, \mydots, S_n = s_n, A_n = a_n]\\ 
+        &= \delta_{s'}[\left\{ s' \right\}] \pi(a_{0} | s') \prod_{k=1}^n p(s_k | s_{k-1}, a_{k-1}) \pi(a_k, s_k) \\
+        &= \mathbb{P}_{s'}^\pi[ S_{0} = s', A_{0} = a_{0}, \mydots, S_n = s_n, A_n = a_n]\\ 
     \end{align*}
 \end{proof}
 
