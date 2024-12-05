@@ -526,7 +526,7 @@ Standing Assumption for this section:
 \]
 
 
-\begin{theorem}[Policy improvement]
+\begin{theorem}[Policy improvement]\label{policy_improvement}
     Let \( \pi, \pi' \in \Pi \) such that for all \( s \in S \) we have
     \begin{equation}
         \sum_{a \in A} \pi(a|s) Q^\pi(s|a) \leq \sum_{a \in A} \pi'(a|s) Q^\pi(s|a). \tag{\textasteriskcentered}\label{policy_improvement_eq}
@@ -608,19 +608,106 @@ Formulated slightly differently, an \( \epsilon \)-greedy policy chooses an opti
         \]
 \end{corollary}
 
+With this Corollary we now have a new strategy to develop better and better policies:
+Starting with an arbitrary policy \( \pi_{0} \in \Pi \), construct a sequence \( \left\{ \pi_n \right\}_{n \in \mathbb{N}} \subseteq \Pi \) of policies by choosing \( \pi_n \) greedy w.r.t \( Q^{\pi_{n-1}} \). But does this sequence converge (in the sense that the state value functions dont change anymore), and if it converges, will it give us an optimal policy, or just some sort of local maximum?  
 
 
+\begin{theorem}[Optimailty via Policy Improvement]
+    Let \( \pi \in \Pi \) and let \( \pi' \in \Pi \) be greedy w.r.t. \( Q^\pi \)\note{So we know, that \( \pi' \) will be atleast as good as pi already.}.
+    If 
+    \[
+        V^\pi = V^{\pi'} \text{ or } Q^\pi = Q^{\pi'} \note{These conditions are actually equivalent and they mean that we are stuck in some local maximum.}
+    \]
+    then \( \pi \) and \( \pi' \) are already optimal.
+\end{theorem}
+\begin{proof}
+By definition of \( Q^\pi \) and \( Q^{\pi'} \), it follows from \( V^\pi = V^{\pi'} \)that also \( Q^{\pi} = Q^{\pi'} \). The other direction follows from 
+\[
+     V^\pi(s) = \sum_{a \in A} Q^\pi (s|a) \cdot \pi(a|s) \note{This also is a consequence of the definition of \( Q \).}
+\]
+Hence we can assume both \(V^{\pi} = V^{\pi'} \text{ and } Q^\pi = Q^{\pi'} \). We start by writing
+\begin{align*}\label{optimality_via_improv_eq}
+    Q^{\pi'}(s|a) &= r(s,a) + \gamma \cdot \sum_{s' \in S} p(s'| s,a) V^{\pi'}(s') \\
+                &= r(s,a) + \gamma \cdot \sum_{s' \in S, a' \in S} P(s'|s,a)\pi'(a'|s')Q^{\pi'}(s'|a') \\
+                &= r(s,a) + \gamma \cdot \sum_{s' \in S, a' \in A} P(s'|s,a)\pi'(a'|s')Q^{\pi}(s'|a') \note{By the assumption for \( Q \).}\\
+                &= r(s,a) + \gamma \cdot \sum_{s' \in S} P(s'|s,a)\max_{a' \in A(s')}Q^{\pi}(s'|a') \note{Since \( \pi' \) is greedy w.r.t \( Q^\pi \).}.\tag{\textasteriskcentered}
+\end{align*}
+
+Now we use
+\begin{align*}
+    V^{\pi'}(s') &= \sum_{a' \in A(s')} \pi'(a'|s')Q^{\pi'}(s'|a') \\
+               &\leq \max_{a' \in A(s')} Q^{\pi'}(s'|a') \label{optimality_via_improv_eq2}\tag{\textasteriskcentered\textasteriskcentered}
+\end{align*}
+to obtain
+\begin{align*}
+    V^{\pi'}(s) &= \sum_{a \in A}\pi'(a|s) Q^{\pi'}(s|a) \\
+              \overset{\eqref{optimality_via_improv_eq}}&{=} \sum_{a \in A} \pi'(a|s) \left[ r(s,a) + \gamma \cdot \sum_{s' \in S} P(s'|s,a)\max_{a' \in A(s')}Q^{\pi}(s'|a') \right] \\
+              \overset{\eqref{optimality_via_improv_eq2}}&{\geq} \sum_{a \in A, s' \in S}\left[ r(s,a) + \gamma V^{\pi'}(s')  \right] \pi'(a|s)p(s'|s,a)\\
+              &= \note{By the standard bellman equation} V^{\pi'}(s).
+\end{align*}
+But then we must have equality in the middle, and from this we are able to even obtain equality for each summand (since the summands already were \( \geq \)) and thus we also get equality in \eqref{optimality_via_improv_eq2}, i.e.
+\begin{align*}
+        V^{\pi'}(s') &= \max_{a' \in A(s')} Q^{\pi'}(s'|a')\\
+                   &= \max_{a' \in A(s')} \left[ r(s',a') + \gamma \sum_{\widetilde{s} \in S} p(\widetilde{s} | s', a') V^{\pi'}(\widetilde{s}) \right].
+\end{align*}
+But this is the bellman \emph{optimality equation} for \( W := V^{\pi'}\), so we have 
+\[
+    (V^{\pi} = ) \,V^{\pi'} = V .
+\]
+Thus \( \pi, \pi' \) are optimal. 
+\end{proof}
 
 
+This means we don't end up in local maximums in case we we have the mentioned convergence. But do we have convergence?\note{Again, in the sense that the Value function stops changing (improving).} First we restate the last theorem:
+
+\begin{corollary}[Suboptimality via Policy Improvement]
+    Let \( \pi \in \Pi \), and \( \pi' \in \Pi \) greedy w.r.t \( Q^{\pi} \). If \( \pi \) is strictly suboptimal, there exists some \( s \in S \) such that 
+    \[
+        V^{\pi}(s) < V^{\pi'}(s).
+    \]
+\end{corollary}
 
 
+Now suppose that we start with an arbitrary policy \( \pi_0 \in \Pi \) and construct an entire sequence \( \left\{ \pi_n \right\}_{n \in \mathbb{N}} \subseteq \Pi \) of policies by choosing \( \pi_n \) greedy w.r.t \( Q^{\pi_{n-1}} \). Observe that, by construction each \( \pi_n \) with \( n \geq 1 \) is deterministic \note{Simply by being \( 0 \) -greedy}. Moreover note, that there are only finitely many (\( |D| \)-many) determinisitc policies, i.e. the set \( \left\{ V^{\pi_n} \,|\, n \geq 1 \right\} \) is finite. As the \( V^{\pi_n} \) are pointwise increasing then only finitely many improvements of \( V^{\pi_n} \) can occur in the sequence, i.e. the sequence will stop changing after some \( n \geq N \) (at latest after \( N:=|D| \)), thus we have our desired convergence, i.e.
+\[
+    V^{\pi_n} = V^{\pi_{n+1}} \text{ for all } n \geq |D|. \note{Note that this doesn't neccessarily imply that \( \pi_n = \pi_{n+1} \text{ for } n \geq |D| \) since there might be multiple deterministic policies that are optimal.}
+\]
 
 
+There is only one problem with our procedure here:
+It assumes that we are capable of computing state/action value functions \( V^\pi \) or \( Q^\pi \), associated with an arbitrary policy. This could e.g. be done by solving the linear system of equations arising from Bellman equation(s). But for this one needs to know the transition probability function \( p \) and the rewards \( r(s,a) \) ...
 
 
+The case of unknown \( p \), which is at the heart of RL, is considered in the next chapter. This is also when \( \epsilon \)-greedy policies become increasingly important, as they are capable of \quotes{exploring} all admissible state-action pairs with small probabilities which greedy policies, which only \quotes{exploit} optimal actions are not capable of.
+
+Before digging deeper into this matter we prepare via taking a closer look at how \( \epsilon \)-greedy policies behave in terms of policy improvement.
 
 
+\begin{theorem}[\( \epsilon \)-greedy policy improvement]
+    Let \( \epsilon \in (0,1] \). Suppose that \( \pi \in \Pi \) is \( \epsilon \)-soft (i.e. \( \pi(a|s) \geq \frac{\epsilon}{|A(s)|}) \) and \( \pi' \) is \( \epsilon \)-greedy w.r.t. \( Q^{\pi} \). Then 
+    \[
+        V^{\pi}(s) \leq V^{\pi'}(s) \text{ for all } s \in S.
+    \]
+\end{theorem}
 
+\begin{proof}
+Like for the \( 0 \)-greedy case we simply check the conditions of the policy improvement \cref{policy_improvement}: 
+We have 
+\begin{align*}
+    V^{\pi}(s) &= \sum_{a \in A(s)} \pi(a|s) Q^{\pi}(s|a) \\
+            &= \frac{\epsilon}{|A(s)|} \cdot \sum_{a \in A(s)} Q^{\pi}(s|a) + (1-\epsilon) \cdot \sum_{a \in A(s)} \frac{\pi(a|s) - \frac{\epsilon}{|A(s)|}}{1-\epsilon} Q^{\pi}(s|a) \note{Just adding a \( 0 \).}\\
+            &\leq \frac{\epsilon}{|A(s)|}\cdot \sum_{a \in A(s)} Q^{\pi}(s|a) + (1-\epsilon) \cdot \max_{a \in A(s)} Q^{\pi}(s|a) \sum_{a \in A(s)} \frac{\pi(a|s) - \frac{\epsilon}{|A(s)|}}{1-\epsilon}
+             \note{By the \( \epsilon \)-softness we have \( \pi(a|s) - \frac{\epsilon}{|A(s)} \geq 0 \), so the maximum indeed makes the term larger.}\\
+            &= \frac{\epsilon}{|A(s)|}\cdot \sum_{a \in A(s)} Q^{\pi}(s|a) + (1-\epsilon) \cdot \max_{a \in A(s)} Q^{\pi}(s|a) \frac{1}{1-\epsilon} \cdot (1-\epsilon)\\
+            &= \frac{\epsilon}{|A(s)|}\cdot \sum_{a \in A(s)} Q^{\pi}(s|a) + (1-\epsilon) \cdot \max_{a \in A(s)} Q^{\pi}(s|a) \\
+            &= \sum_{a \in A(s)} \pi'(a|s) Q^{\pi}(s|a)
+\end{align*}
+which is exactly what we have to check, since 
+\[
+    V^\pi(s) = \sum_{a \in A(s)} \pi(a|s) Q^{\pi}(s|a)
+\]
+so we are finished.
+\end{proof}
 
 
 
