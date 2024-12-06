@@ -716,4 +716,166 @@ so we are finished.
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Temporal difference learning}
+Now: towards reinforcement learning.\\
+Setting: We do not know the transition probabilities
+\[
+s' \mapsto p(s'|s,a)
+\]
+but have an \quotes{oracle} which allows us to sample from \( p \) and any  
+\( \pi \in \Pi \).
+Reminder:
+\begin{align*}
+    V(s) &= \max_{a \in A(s)} \left[ r(s,a) + \gamma \cdot \sum_{s' \in S} p(s' | s,a) \cdot V(s') \right]\note{The Bellman optimality equation.} \\
+    Q^{\pi}(s|a) &= r(s,a)
+ + \gamma \cdot \sum_{s' \in S, a' \in A} p(s' | s,a) \cdot \pi(a' | s') \cdot Q^{\pi}(s'|a') \\
+      V^{\pi}(s) &= \mathbb{E}_s^\pi \left[ \sum_{n=0}^\infty \gamma^n \cdot r(S_n, A_n) \right]\\
+      &= \sum_{a \in A} \left[ r(s,a) + \gamma \cdot \sum_{s' \in S} p(s' | s,a) \cdot V^{\pi}(s') \right] \cdot \pi(a|s)
+\end{align*} 
+
+Observe that, in this setting,
+\begin{itemize}
+    \item we cannot solve the Bellman optimality equation for \( V \) as it explicitly involves \( p \).
+    \item the policy improvement algorithm breaks down since we have no means of computing \( Q^{\pi} \) or \( V^{\pi} \) without knowing \( p \).     
+\end{itemize}
+
+\subsection{Temporal difference estimation}
+
+We begin by investigating how we can estimate \( V^{\pi} \) and/or \( Q^\pi \) for a fixed policy \( \pi \in \Pi \) without knowing \( p \). The first, ad hoc, idea is to estimate 
+\[
+    V^{\pi}(s) = \mathbb{E}_s^\pi \left[ \sum_{n=0}^{\infty} \gamma^n \cdot r(S_n, A_n) \right]
+\] 
+using the law of large numbers.
+
+
+To simplify notations, we write 
+\[
+    R_n := r(S_n, A_n), n \in \mathbb{N}_{0}
+\] 
+for the immedia reward at time \( n \in \mathbb{N}_{0} \).
+Our assumption of having acess to an oracle means we can produce an arbitrary number \( M in \mathbb{N} \) of realizations 
+\[
+    r_n^1, \mydots, r_n^M \text{ of } R_n
+\]
+sampled independently under \( \mathbb{P}_s^\pi \).
+
+To make this more formal, we will take a slightly different view point: instead of having different realizations (for different \( \omega_1, \mydots, \omega_M \) ) of the same process we wil have (at least) \( M \) different processes but only use one realization each at the same \( \omega \). Then we are able to use the standard definition of independence for random variables in our future assumptions \note{In the other view this independence would be hard to formalize.}.
+
+So more precisely, lets assume that there are independet stochastic processes 
+\[
+    \left\{ \left( S_n^m, A_n^m \right) \right\}_{n \in \mathbb{N}_{0}}, m \in \mathbb{N}
+\]
+which have the same distribution \note{In short, they are i.i.d.}
+as \( \left\{ \left( S_n, A_n \right) \right\}_{n \in \mathbb{N}_{0}} \) under \( \mathbb{P}_s^{\pi} \). Writing \( R_n^m := r(S_n^m, A_n^m) \), the oracle allows to obtain one fixed realization of the first \( M \in \mathbb{N} \) processes \( \left\{ \left( S_n,A_n, R_n \right) \right\}_{n \in \mathbb{N}_{0}}, m = 1, \mydots, M \) up to a fixed time step \( N \in \mathbb{N}_{0} \). That is, for some \( \hat{\omega} \in \Omega \) fixed (but unknown) we are given the values
+\[
+    s_n^m := S_n^m(\hat{\omega}), a_n^m := A_n^m(\hat{\omega}), r_n^m := R_n^m(\hat{\omega}), m = 1,\mydots, M,\, n = 0,1,\mydots,N
+\]      
+
+Now note that 
+\[
+    \sum_{n=0}^N \gamma^n R_n \simeq \sum_{n=0}\infty \gamma^n R_n \text{ if N is large }.
+\]
+and by the strong lar of large numbers
+\[
+    \frac{1}{M}\sum_{m=1}^M \sum_{n=0}^N \gamma^n \cdot R_n^m \longrightarrow \mathbb{E}_s^\pi \left[ \sum_{n = 0}^N \gamma^n R_n \right] \mathbb{P}_s^\pi \text{-a.s.}
+\]
+In combination, it follows that
+\begin{align*}
+    \frac{1}{M} \sum_{ m = 1}^M \sum_{n=0}^N \gamma^n \cdot r_n^m &= \frac{1}{M} \sum_{m=1}^N \sum_{n = 0 }^N \gamma^n \cdot r(S_n^m(\hat{\omega}), A_n^m(\hat{\omega})) \\
+    \overset{M \to \infty, \mathbb{P}_s^\pi\text{-a.s.}}&{\longrightarrow} \mathbb{E}_s^\pi \left[  \sum_{n = 0}^N \gamma^n \cdot r(S_n, A_n) \right] \\
+    \overset{N \to \infty}&{\longrightarrow} \mathbb{E}_s^\pi \left[  \sum_{n=0}^{\infty} \gamma^n \cdot r(S_n, A_n) \right] = V^\pi(s)
+\end{align*}
+The quality of approximation clearly depends on the problem at hand. For example, the approximation in \( N \) depends on the runtime of a singe episode.
+In general, there are three different situations which may arise.
+
+
+
+\begin{definition}[absorbing \qquad terminal \qquad \( S_\dagger \) ]
+A state \( s \in S \) is called \emph{absorbing}, iff 
+\[
+    p(s|s,a) = 1, \text{ for all  } a \in A(s).
+\] 
+Moreover \( s \) is called \emph{terminal}, iff it is absorbing and \( r(s,a) = 0 \) for all \( a \in A(s) \).
+We write \( S_\dagger \) for the set of \emph{terminal states}.\note{We assume that we know the terminal states.}         
+
+\end{definition}
+
+Iff the state process \( \left\{ S_n \right\}_{n \in \mathbb{N}_{0}} \) enters into an absorbing state, it will never leave that state.
+If the reward in that state is zero, the MDP has basically \quotes{terminated} -- the episode is effectively over.
+
+\begin{definition}[lifetime \( \rho \)]
+    The function \( \rho: \Omega \to \mathbb{N}_{0} \cup \left\{ +\infty \right\} \)
+    \[
+        w \mapsto \rho(\omega) := \inf \left\{ n \in \mathbb{N}_{0}: S_n(\omega) \in S_{\dagger} \right\}
+    \] 
+    is called \emph{terminal time / lifetime} of the MDM.
+\end{definition}
+
+There are exactly three different cases for the lifetime of a MDM:
+\begin{itemize}
+    \item finite horizon problems: There exists \( N \in \mathbb{N}_{0} \) s.t. for all \( s \in S, \pi \in \Pi \) we have 
+    \( \rho \leq N \,\,\mathbb{P}_s^\pi\text{-a.s.}\).
+    
+    \item infinite horizon problems: For all \( s \in S, \pi \in \Pi \) we have  \( \rho = \infty \,\,\mathbb{P}_s^\pi\text{-a.s.} \).
+    
+    \item random horizon problems: Any problem which is not a finite or infinite horizon problem.
+\end{itemize}
+
+In what follows, we refer for each fixed \( m \in \left\{ 1,\mydots, M \right\} \) 
+ to each sequence 
+ \[
+     s_{0}^m,a_{0}^m, r_{0}^m,\mydots,s_n^m,a_n^m, r_N^m
+ \]
+
+ produced by the oracle as a \emph{roll-out}. 
+
+ Again, these are interpreted as realizations of the random variables
+ \[
+     S_{0}^m, A_{0}^m, r(S_{0}^m, A_{0}^m),\mydots, S_n^m, A_n^m, r(S_n^m, A_n^m).
+ \]
+In finite horizon problems, we can always guarantee, that the length \( N \) of a roll-out corresponds to the number of time steps in an episode, so there is no error in the approximation
+\[
+    \sum_{n=0}^N \gamma^n R_n^m \text{ of  } \sum_{n=0}^\infty \gamma^n R_n^m.
+\]  
+ 
+Conversely, in infinite horizon prolems, there will always be an error. In random time horizon problems one can try to choose \( N \) depending on \( m \) with the objective of observing an entire episode, albeit there is no guarantee that this is possible.
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
 \end{document}
