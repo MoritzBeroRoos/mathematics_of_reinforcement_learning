@@ -797,7 +797,7 @@ and by the strong lar of large numbers
 \]
 In combination, it follows that
 \begin{align*}
-    \frac{1}{M} \sum_{ m = 1}^M \sum_{n=0}^N \gamma^n \cdot r_n^m &= \frac{1}{M} \sum_{m=1}^N \sum_{n = 0 }^N \gamma^n \cdot r(S_n^m(\hat{\omega}), A_n^m(\hat{\omega})) \\
+    \frac{1}{M} \sum_{ m = 1}^M \sum_{n=0}^N \gamma^n \cdot r_n^m &= \frac{1}{M} \sum_{m=1}^M \sum_{n = 0 }^N \gamma^n \cdot r(S_n^m(\hat{\omega}), A_n^m(\hat{\omega})) \\
     \overset{M \to \infty, \mathbb{P}_s^\pi\text{-a.s.}}&{\longrightarrow} \mathbb{E}_s^\pi \left[  \sum_{n = 0}^N \gamma^n \cdot r(S_n, A_n) \right] \\
     \overset{N \to \infty}&{\longrightarrow} \mathbb{E}_s^\pi \left[  \sum_{n=0}^{\infty} \gamma^n \cdot r(S_n, A_n) \right] = V^\pi(s)
 \end{align*}
@@ -857,25 +857,101 @@ In finite horizon problems, we can always guarantee, that the length \( N \) of 
 Conversely, in infinite horizon prolems, there will always be an error. In random time horizon problems one can try to choose \( N \) depending on \( m \) with the objective of observing an entire episode, albeit there is no guarantee that this is possible.
  
  
+
  
+\subsection*{Update rules}
+Before, our (random) approximation of \( V^\pi(s) \) after \( m \in \left\{  1,\mydots,M \right\}\) roll-outs takes the form 
+\[
+    \hat{V}_m^\pi(s) := \frac{1}{m} \sum_{l=1}^m \sum_{n=0}^N \gamma^n r(S_n^l, A_n^l)
+\]
+Note that \( \hat{V}_m^\pi \) can be computed iteratively w.r.t. \( m \) by 
+\begin{align*}
+        \hat{V}_{m+1}^\pi(s) &= \frac{1}{m+1} \sum_{l=1}^{m+1} \sum_{n=0}^N \gamma^n R_n^l \\
+        &= \frac{1}{m+1} \sum_{n=0}^N \gamma^n R_n^{m+1} + \frac{m}{m+1} \cdot \frac{1}{m} \sum_{l=1}^m \sum_{n=0}^N \gamma^n R_n^l\\
+        &= \frac{1}{m+1} \sum_{n=0}^N \gamma^n R_n^{m+1} + \frac{m}{m+1} \hat{V}_m^\pi(s)
+\end{align*}
  
+This update rule is much more memory efficient, as we do not have to store the rewards of the previous rollouts \( l = 1,..,m \).
+Rewriting the update rule above, by setting
+\[
+    \alpha_{m+1}(s) := \frac{1}{m+1}
+\]
+and using 
+\[
+    \frac{m}{m+1} = 1 - \frac{1}{m+1} = 1 - \alpha_{m+1}(s)
+\] 
+yields 
+\[
+    \hat{V}_{m+1}^\pi(s) = \hat{V}_m^\pi(s) + \alpha_{m+1}(s) \cdot \left[ \sum_{n=0}^N \gamma^n \cdot R_n^{m+1} - \hat{V}_m^\pi(s) \right]
+\]
+which is of the form
+\[
+    \text{ new estimate } = \text{ old est. } + \text{ learning rate } \cdot \text{ error in the (old) estimate }
+\] 
  
+Some tricks to make the estimation more efficient in practice:
+\begin{itemize}
+    \item Instead of sampling from \( \mathbb{P}_s^\pi \) one can sample from \( \mathbb{P}_\mu^\pi \), where \( \mu \) is a distribution on \( S \) which puts positive probability on each state \( s \in S \) \note{This doesnt give more efficiency on its own.}. The m-th roll out \( (s_n^m, a_n^m, r_n^m), n=0,\mydots,N \) is used to update the stimate of \( V^\pi(s_{0}^m) \) corresponding to the randomly chosen initial state.
+    
+    \item Each Rollout can be used to update \emph{several} different estimates of \( V^\pi \). Indeed, if for \( n \in \left\{ 1,\mydots,N \right\} \)
+    \[
+        s_n^m \notin \left\{ s_{0}^m, s_{1}^m, \mydots, s_{n-1}^m \right\}
+    \]
+    we can think of \( (s_j^m, a_j^m, r_j^m), j=n,\mydots,N \) as a roll out with initial state \( s_n^m  \). This approach is called \emph{first visit Moneta Carlo estimation}.
+    
+    \item The advantage is, that it requires less samples, compared to the original approach, in which each roll-out is only used once.
+    The disadvantage is that the estimates for \( V^\pi(s_{0}^m) \) and \( V^\pi(s_n^m) \) become stochastically dependent, as they use realizations from the same random variables \( (S_j^m, A_j^m), j = n,\mydots,N \). However, the Law or Large numbers doesnt break down in this case yet.
+    
+    \item In practice, one often even goes one step further and uses \emph{every} subsequence of a roll out 
+    \begin{align*}
+        (s_{0}^m, a_{0}^m, \mydots, s_N^m, a_N^m) \text{ to update the estimate of } V^\pi(s_{0}^m) \\
+        (s_{1}^m, a_{1}^m, \mydots, s_N^m, a_N^m) \text{ to update the estimate of } V^\pi(s_{1}^m) \\
+        \vdots\qquad \qquad \qquad \qquad \qquad  \\
+        (s_{N}^m, a_{N}^m) \text{ to update the estimate of } V^\pi(s_{N}^m) \\
+    \end{align*}
+\end{itemize}
  
+Irrespective of whether or not a state has been visited before in the roll out, or not. This causes dependence between reward samples \emph{within} estimates of \( V^\pi(s_n^m) \) as soon as \( s_N^m \) is visited more than once in a roll out. This is called \emph{every visit Moneta-Carlo estimation}. Here the Law of large numbers can't be applied anymore, so it isn't clear at all, that this method will give convergence. It seems to work well in practice though.
  
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
+\subsection*{Temporal difference estimation:}
+
+In Monte Carlo we approximate 
+\[
+    V^\pi(s) = \mathbb{E}_s^\pi \left[ \sum_{n=0}^\infty \gamma^n \cdot r(S_n, A_n) \right].
+\]
+
+Instead, inspired by the Bellman equation, we could also try to approximate 
+
+\[
+    V^\pi(s) = \mathbb{E}_s^\pi \left[  r(S_{0}, A_{0}) + \gamma \cdot V^\pi(S_{1}) \right]
+\]
+This is achieved as follows. Instead of using the Monte carlo update rule 
+
+\[
+    \hat{V}_{m+1}^{\pi} (s) = \hat{V}_m^\pi(s) + \alpha_{m+1}(s) \cdot \left[ \sum_{n=0}^N \gamma^n \cdot r_n^m - \hat{V}_m^\pi(s) \right]
+\]
+
+we change the target as follows: Let \( l \in \left\{ 1,\mydots,M \right\}, n \in \left\{  0,\mydots,N-1 \right\} \) and write
+\[
+    (s,a,r,s',a') = (s_n^l, a_n^l, r(s_n^l, a_n^l), s_{n+1}^l, a_{n+1}^l  ).
+\] 
+Suppose moreover, we have an estimate \( \hat{V}_m^\pi(s) \) which has been updated \( m \)-times before. Then the update rule is
+\[
+    \hat{V}_{m+1}^\pi(s) = \hat{V}_m^\pi(s) + \alpha_{m+1}(s) \cdot \left[ r + \gamma \cdot \hat{V}_m^\pi(s') - \hat{V}_m^\pi(s) \right]
+\]  
+where \( \left\{ \alpha_m(s) \right\}_{m \in \mathbb{N}} \subseteq [0,\infty) \)  is a sequence, s.t. 
+\[
+    \sum_{m=1}^{\infty} \alpha_m(s) = \infty \text{  and } \sum_{m=1}^{\infty} \alpha_{m}(s)^{2} < \infty \text{ for each } s.
+\] 
+
+
+
+
+
+
+
+
+
+
+
 \end{document}
