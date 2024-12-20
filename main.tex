@@ -927,7 +927,7 @@ Instead, inspired by the Bellman equation, we could also try to approximate
 This is achieved as follows. Instead of using the Monte carlo update rule 
 
 \[
-    \hat{V}_{m+1}^{\pi} (s) = \hat{V}_m^\pi(s) + \alpha_{m+1}(s) \cdot \left[ \sum_{n=0}^N \gamma^n \cdot r_n^m - \hat{V}_m^\pi(s) \right]
+    \hat{V}_{m+1}^{\pi} (s) = \hat{V}_m^\pi(s) + \alpha_{m+1}(s) \cdot \left[ \sum_{n=0}^N \gamma^n \cdot r_n^{m+1} - \hat{V}_m^\pi(s) \right]
 \]
 
 we change the target as follows: Let \( l \in \left\{ 1,\mydots,M \right\}, n \in \left\{  0,\mydots,N-1 \right\} \) and write
@@ -936,7 +936,7 @@ we change the target as follows: Let \( l \in \left\{ 1,\mydots,M \right\}, n \i
 \] 
 Suppose moreover, we have an estimate \( \hat{V}_m^\pi(s) \) which has been updated \( m \)-times before. Then the update rule is
 \[
-    \hat{V}_{m+1}^\pi(s) = \hat{V}_m^\pi(s) + \alpha_{m+1}(s) \cdot \left[ r + \gamma \cdot \hat{V}_m^\pi(s') - \hat{V}_m^\pi(s) \right] \label{bellman_eq_inspired_estimation}\tag{+}
+    \hat{V}_{m+1}^\pi(s) = \hat{V}_m^\pi(s) + \alpha_{m+1}(s) \cdot \left[ r + \gamma \cdot \hat{V}_m^\pi(s') - \hat{V}_m^\pi(s) \right] \label{bellman_eq_inspired_estimation}\tag{+}\note{This will be called \( \operatorname{TD}(0). \) }
 \] 
 where \( \left\{ \alpha_m(s) \right\}_{m \in \mathbb{N}} \subseteq [0,\infty) \)  is a sequence, s.t. 
 \[
