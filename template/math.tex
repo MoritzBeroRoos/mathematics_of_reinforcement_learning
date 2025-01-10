@@ -26,6 +26,8 @@
 \usepackage[capitalize,nameinlink]{cleveref}
 \usepackage{soul} % for breakable underline \ul
 
+\usepackage{xcolor}  % Required for color definitions
+
 
 
 % Define a command to switch to Palatino Bold Italic (only for the theorem titles)
@@ -318,6 +320,8 @@ qed=\raisebox{-1.5pt}{\scalebox{1.0}{$\blacksquare$}}
 
 
 
+
+
 %define proof environment
 \declaretheorem[style=myproofstyle]{myproof}
 \declaretheorem[style=myinlineproofstyle]{myinlineproof}
@@ -327,8 +331,12 @@ qed=\raisebox{-1.5pt}{\scalebox{1.0}{$\blacksquare$}}
 
 
 
+\definecolor{emphcolor}{HTML}{295fbb}
+
 \let\oldemph\emph
-\renewcommand{\emph}[1]{\oldemph{\ul{#1}}}
+%\renewcommand{\emph}[1]{\oldemph{\ul{#1}}}
+\renewcommand{\emph}[1]{\oldemph{\textcolor{emphcolor}{#1}}}
+
 
 
 \newcommand{\matrixfunc}[2]{

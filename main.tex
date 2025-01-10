@@ -612,7 +612,7 @@ With this Corollary we now have a new strategy to develop better and better poli
 Starting with an arbitrary policy \( \pi_{0} \in \Pi \), construct a sequence \( \left\{ \pi_n \right\}_{n \in \mathbb{N}} \subseteq \Pi \) of policies by choosing \( \pi_n \) greedy w.r.t \( Q^{\pi_{n-1}} \). But does this sequence converge (in the sense that the state value functions dont change anymore), and if it converges, will it give us an optimal policy, or just some sort of local maximum?  
 
 
-\begin{theorem}[Optimailty via Policy Improvement]
+\begin{theorem}[Optimailty via Policy Improvement]\label{optimality_via_improv}
     Let \( \pi \in \Pi \) and let \( \pi' \in \Pi \) be greedy w.r.t. \( Q^\pi \)\note{So we know, that \( \pi' \) will be atleast as good as pi already.}.
     If 
     \[
@@ -1053,6 +1053,183 @@ where \( \pi_b \) is the behavioral policy. Finally, there are of course
 
 
 
+
+
+
+\subsection{Convergence of Q-Learning}
+Aim: Establish conditions under which Q-learning converges.
+Recall the Q-learning algorithm:
+
+\begin{itemize}
+    \item \emph{Initialization}: Choose an arbitrary function \( q_{0} : S \times A \to \mathbb{R} \) s.t. 
+    \[
+        q_{0}(s|a) = 0 \text{ for } s \in S_\dagger, a \in A.
+    \]  
+    Let moreover \( \left\{ \pi_t \right\}_{t \in \mathbb{N}_{0}} \) be a sequence of policies and \( \left\{ \hat{\alpha}_t \right\}_{t \in \mathbb{N}_{0}} \) be a sequence of learning rates valued in \( [0,\infty) \). Sample 
+    \[
+        S_{0} \text{ (e.g. randomly) }
+    \]
+    \[
+        A_{0} \text{ according to } \pi_{0}(\cdot | S_{0})
+    \]
+    \item \emph{update}: For each \( t \in \mathbb{N}_{0} \) sample 
+    \[
+        S_{t+1} \text{ from } \begin{cases}
+            &(S_t, A_t) \text{ if } S_t \text{ is \emph{not} a terminal state}\\
+            &\text{abitrarily (e.g. randomly) otherwise. }\\
+        \end{cases} 
+    \] 
+    \[
+        A_{t+1} \text{ according to } \pi_{t+1}(\cdot | S_{t+1}).
+    \]
+    Define a learning rate function \( \alpha_{t+1}: S \times A \to [0,\infty) \) 
+    \[
+        \alpha_{t+1}(s,a) := \hat{\alpha}_{t+1} \cdot 1_{\left\{ (s,a) = (S_t, A_t) \right\}} \cdot 1_{\left\{ S_t \in S_\dagger \right\}} \note{We only update \( q_t \) to \( q_{t+1} \) at \( (S_t,A_t) \) and only if \( S_t \) isn't terminal. The terminality check can be left out - terminal states will always make \( q_{\cdot}(s_\dagger, \cdot) \) zero.    }
+    \] 
+    and let \( q_{t+1}: S \times A \to \mathbb{R} \) be given by 
+    \[
+        q_{t+1}(s,a) := q_{t}(s|a) + \alpha_{t+1}(s,a) \cdot \left[ r(s,a) + \gamma \max_{a' \in A(S_{t+1})}q_t(S_{t+1}| a') - q_{t}(s|a) \right]
+    \] 
+    for all \( (s,a) \in S \times A \). 
+\end{itemize}
+
+
+The main difference in the formulation used here is that we combine rollouts \( \left( S_n^m, A_n^m \right) \) into one large sequence \( \left\{ \left( S_t, A_t \right) \right\}_{t \in \mathbb{N}_{0}} \) and that we explicitly treat the updating procedure as producing a sequence of functions \( \left\{ q_t \right\}_{t \in \mathbb{N}_{0}} \). The policies \( \pi_t \) are kept general here, but could e.g. be \( \epsilon_{t} \)-greedy w.r.t. \( q_{t} \) for a sequence \( \left\{ \epsilon_{t} \right\}_{t \in \mathbb{N}_{0}} \subseteq [0,1] \).
+
+\emph{Aim}: Find conditions under which \( \left\{ q_t \right\}_{t \in \mathbb{N}_{0}} \) converges to the optimal action value function \( Q \).
+
+Our starting point is the following fixed-point characterization of \( Q \).
+
+\begin{corollary}[Fixed-point characterization of \( Q \)]\label{fixed_point_characterization_Q}
+Suppose \( q^* : S \times A \to \mathbb{R} \) is a fixed point of the operator \( \mathcal{T}^{*} \) defined by acting on functions \( q: S \times A \to \mathbb{R} \) as follows:
+\[
+    \mathcal{T}^*[q](s,a) := r(s,a) + \gamma \cdot \sum_{s' \in S} p(s'|s, a) \cdot \max_{a' \in A(s')} q(s' | a').
+\]
+Define
+\[
+     V*: S \to \mathbb{R},\, s \mapsto v*(s) := \sum_{a \in A(s)} \pi^* (a|s) \cdot q(s|a),
+\]
+where \( \pi^* \) is any greedy policy w.r.t. \( q^* \). Then 
+\[
+    q* = Q \text{  and  } v* = V \text{ and } \pi^* \text{ is optimal. }
+\]
+\end{corollary}
+
+
+\begin{proof}
+This was established in the proof of \cref{optimality_via_improv}.    
+\end{proof}
+
+In light of \cref{fixed_point_characterization_Q} it becomes apparent what we have to do:
+Show that \( \left\{ q_t \right\}_{t \in \mathbb{N}_{0}} \) converges to a fixed point of \( \mathcal{T}^* \).  
+
+To see that there actually is a chance that Q-learning converges let us rewrite the update rule one last time as 
+\[
+    q_{t+1} = q_{t} + \alpha_{t} \cdot \left[ \mathcal{T}^*[q_{t}] - q_{t} + \epsilon_{t} \right], t \in \mathbb{N}_{0}
+\]
+where 
+\[
+    \epsilon_{t}(s,a) := r(s,a) + \gamma \max_{a' \in A(S_{t+1})} q_{t}(S_{t+1}| a') - \mathcal{T}^{*}[q_{t}](s,a)
+\]
+for all \( (s,a) \in S \times A \).
+
+\begin{remark}
+\( \left\{ q_{t} \right\}_{t \in \mathbb{N}_{0}} \) is a random sequence, since in each step \( t+1 \) the state-action pair which is updated is chosen randomly as \( (S_{t},A_{t}) \).       
+\end{remark}
+
+\begin{lemma}[Ingredients for convergence]
+    \ \vspace{-2em}
+    \begin{enumerate}[(i)]
+        \item Suppose \( \gamma < 1 \). Then \( \mathcal{T}^* \) is a contraction w.r.t. \( ||\cdot||_{\infty} \)
+
+        \item \( \displaystyle\sum_{s' \in S} \alpha_{t+1}(s,a) \cdot \epsilon_t(s,a) \cdot p(s' | S_t, A_t) = 0 \) for all \( (s,a) \in S \times A \).  
+    \end{enumerate}
+\end{lemma}
+
+\begin{proof}
+    \begin{enumerate}[(i)]
+        \item Let \( q, \hat{q}: S \times A \to \mathbb{R} \) and \( (s,a) \in S \times A \). Suppose w.l.o.g. \( \mathcal{T}^* [q] (s,a) \geq \mathcal{T}^*[\hat{q}](s,a) \). Then 
+        \begin{align*}
+            & |\mathcal{T}^* [q](s,a) - \mathcal{T}^*[\hat{q}](s,a) | \\
+            &=  \mathcal{T}^* [q](s,a) - \mathcal{T}^*[\hat{q}](s,a) \\
+            &= r(s,a) + \gamma \sum_{s' \in S}p(s' | s,a) \cdot \max_{a* \in A(s')} q(s'|a') - r(s,a) - \gamma \sum_{s' \in S} p(s'|s,a) \cdot \max_{a' \in A(s')} \hat{q}(s'|a')\\
+            &= \gamma \sum_{s' \in S} p(s' | s,a) \cdot \left[ \max_{a' \in A(s)} q(s'|a') - \max_{a' \in A(s')}\hat{q}(s'|a')  \right]\\
+            &\leq \gamma \cdot \max_{(s',a') \in S \times A} | q(s'|a') - \hat{q}(s'|a')| \cdot \sum_{s' \in S} p(s' | s,a)\\
+            &\leq \gamma \cdot ||q-\hat{q}||_{\infty} \cdot 1,
+        \end{align*}   
+
+    so 
+    \[
+        || \mathcal{T}^* [q] - \mathcal{T}^*[\hat{q}]||_{\infty} \leq \gamma \cdot ||q - \hat{q}||_{\infty}.
+    \]
+
+    \item Let \( (s,a) \in S \times A \) and recall 
+    \[
+        \epsilon_t(s,a) = r(s,a) - \gamma \max_{a' \in A(S_{t+1})} q_t(S_{t+1} | a') - \mathcal{T}^* [q_t](s,a)
+    \] 
+    and 
+    \[
+        \mathcal{T}^*[q_t](s,a) = r(s,a) - \gamma \cdot \sum_{s' \in S} p(s'| s,a) \max_{a' \in A(s)} q_t(s'|a').
+    \]
+    This implies 
+    \begin{align*}
+        &\alpha_{t+1}(s,a) \epsilon_t(s,a) \\ 
+        &= \gamma \cdot \hat{\alpha}_{t+1} \cdot 1_{\left\{  (s,a) = (S_t, A_t) \right\}} \cdot 1_{\left\{  S_t \in S_{\dagger} \right\}}\\
+        &\quad \quad \quad \cdot \left[ \max_{a' \in A(S_{t+1})} q_t(S_{t+1} | a') - \sum_{ s' \in S} p(s' | s,a) \max_{a' \in A(s')} q_t(s'|a') \right]\\
+        &= \gamma \cdot \hat{\alpha}_{t+1} \cdot 1_{\left\{  (s,a) = (S_t, A_t) \right\}} \cdot 1_{\left\{  S_t \in S_{\dagger} \right\}}\\
+        &\quad \quad \quad \cdot \left[ \max_{a' \in A(S_{t+1})} q_t(S_{t+1} | a') - \sum_{ s' \in S} p(s' | S_t,A_t) \max_{a' \in A(s')} q_t(s'|a') \right],
+    \end{align*}
+    so
+    \[
+        \sum_{s' \in S} \alpha_{t+1}(s,a) \epsilon_t(s,a) p(s' | S_t, A_t) = 0.
+    \]
+\end{enumerate}
+    
+\end{proof}
+
+
+The previous lemma allows us to get an idea of why Q-learning has a chance to converge. 
+Knowing that \( \mathcal{T}^* \) is a contraction, the classical Banach fixed point iteration reads 
+\begin{align*}
+    q_{t+1} &= \mathcal{T}^*[q_{t}] \\
+            &= q_t + 1 \cdot \left[  \mathcal{T}^*[q_t] - q_t + 0 \right].\note{1 stands in for the learning rate \( \alpha_{t+1} \), 0 for the epsilon \( \epsilon_t \) . }
+\end{align*}
+
+Since we cannot evaluate \( \mathcal{T}^* \) -- as we do not know the transition probabilities \( p \) -- the Q-learning instead uses the iteration 
+\[
+    q_{t+1} = q_t + \alpha_{t+1} \cdot \left[ \mathcal{T}^*[q_t] - q_t + \epsilon_t \right].
+\]  
+For \( \alpha_{t+1} \equiv 1\), this would yield the fixed point iteration up to the additional error term \( \epsilon_{t} \).
+
+While according to the previous lemma the error is unbiased (i.e. it vanishes in the mean), the Q-learning algorithm would not stand a chance to converge if \( \alpha_{t+1} \) is kept equal to \( 1 \).
+Instead the role of \( \alpha_{t+1} \) is to balance the momevement towards the fixed point of \( \mathcal{T}^* \) (\( \alpha_{t+1} \) close to \( 1 \)  ) and fading out the contribution of the error term (\( \alpha_{t+1} \) close to \( 0 \)  ). This means that we would like 
+\[
+    \alpha_{t+1} \to 0, \text{ as } t \to \infty
+\]
+but not too fast, so that the update rule does not differ too much from the Banach fixed point iteration. The appropriate speed turns out to be given by the Robbins-Monro condition 
+\[
+    \sum_{t \in \mathbb{N}_{0}} \alpha_t (s,a) = \infty
+\]
+\[
+     \sum_{t \in \mathbb{N}_{0}} \alpha_t (s,a)^2 < \infty
+\]
+for all \( (s,a) \in S \times A \).
+
+
+
+
+\begin{theorem}[Convergence of Q-learning]
+Suppose that the Q-learning algorithm is set up such that the sequence \( \left\{  \alpha_t \right\}_{t \in \mathbb{N}_{0}} \) satisfies the Robbins-Monro condition. Suppose moreover that \( \gamma < 1 \).
+
+Then \( \left\{ q_t \right\}_{t \in \mathbb{N}_{0}} \) converges to the (unique) fixed point of \( \mathcal{T}^* \).
+\end{theorem}
+
+\begin{proof}Beyond the scope of this course. Uses super-martingale theory.
+\end{proof}
+
+
+
+Takign a look at the definition of \( \alpha_t \), we see that we need, in particular, that every state is visited infinitely often. This can be ensured by choosing the policies \( \left\{ \pi_t \right\}_{t \in \mathbb{N}_{0}}\) \( \epsilon \)- greedy and choosing the initial state for each episode randomly.
 
 
 
