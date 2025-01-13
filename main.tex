@@ -1241,4 +1241,187 @@ Takign a look at the definition of \( \alpha_t \), we see that we need, in parti
 
 
 
+
+
+
+
+
+
+
+
+\section{Policy Gradient Methods}
+
+
+Reminder: \emph{Gradient Descent (GD) and Gradient ascent (GA)}
+GD/GA is a class of methods to approximate minima of continously differentiable functions 
+\[
+    f : \mathbb{R}^d \to \mathbb{R}
+\]
+such that \( \argmin_{x \in \mathbb{R}^d} f(x) \neq \emptyset \) numerically. The simplest variant of GD starts at an arbitrary point \( x_{0} \in \mathbb{R}^d \), picks a learning rate \( \alpha > 0 \), and iteratively approximates minimizers of \( f \) via the update rule 
+\[
+    x_{t+1} := x_{t} - \alpha Df(x_t), t \in \mathbb{N}_{0},
+\]   
+where \( Df \) denotes the gradient of \( f \). The motivation for the update rule is that \emph{-\( Df(x_t) \)} is the direction of steepest descent of \( f \) at \( x_t \), hence \( f(x_{t+1}) \leq f(x_t) \) if \( \alpha \) is small enough. 
+
+GD terminates, that is \( x_{t+1} = x_{t} \), iff \( Df(x_t) = 0 \), meaning that \( x_t \) is a stationary point of \( f \).\note{It could also very well be only a \emph{local} minimum, a saddle point or even a maximum!} For sufficiently nice \( f \) and small enough \( \alpha \), there are very simple and satisfactory convergence proofs.
+
+
+
+\subsection{Policy Gradients and REINFORCE}
+
+How can we apply GD to MDPs?
+
+By replacing \( f \) by \( -f \), it is clear that GD can also be used to approximate global maxima, in which case we speak of gradient ascent (GA).
+The function we wish to maximize is   
+\[
+    \pi \mapsto V^{\pi}(s)\note{One can replace the policy space by a \( \mathbb{R}^d \) where \( d := |S \times A|\) and apply GA to this problem. But thats a lot of dimensions!}
+\]
+for some fixed initial state \( s \in S \).  If we want to apply GA, we need to compute the gradient of the mapping above w.r.t. \( \pi \). In practice however, one typically first restricts the set of policies to a carefully chosen parameterized subset 
+\[
+     \Pi_\Theta := \left\{ \pi_\theta : \pi \in \Theta \right\} \subseteq \Pi .
+\]
+In doing so, one hopes to make the optimization more tractable/efficient by restricting the optimazion to a lower dimensional space \( \Theta \). On the other hand \( \Pi_\Theta \) should be large enough to contain an optimal polcy (at least in its \quotes{closure}). A common choice is 
+\[
+    \Theta := \mathbb{R}^d \text{ for some  } d \leq |S|\cdot|A|
+\]  
+and 
+\[
+    \pi_\theta(a|s) := \frac{\exp h_\theta(s,a)}{\sum_{a' \in A} \exp h_\theta(s,a')},\,\, a \in A(s)
+\]
+where \( \theta \mapsto h_\theta(s,a) \) is a continuously differentiable function for each \( (s,a) \in S \times A \).  
+
+
+One such choice would be 
+\[
+    h_\theta(s,a) = \sum_{i=1}^d \theta_i \phi_i(s,a), \,\, \theta \in \mathbb{R}^d
+\]
+for functions \( \phi_{1},\mydots,\phi_d : S \times A \to \mathbb{R} \).
+
+Another common choice for \( h_{0} \) is a neural network mapping from \( S \times A  \to \mathbb{R}\) with \( \theta \) denoting the parameters of the network. 
+Having fixed \( \Pi_\Theta \), we can now think of 
+\[
+    \pi \mapsto V^\pi(s)
+\]
+restricted to \( \Pi_\Theta \) as a mapping 
+\[
+    \theta \mapsto V^{\pi_\theta}(s)
+\] 
+on \( \Theta \). In light of this, we can subsequently define for some fixed \( s \in S \) the mapping 
+\[
+    v: \Theta \to \mathbb{R}, \,\, \theta \mapsto v(\theta) := V^{\pi_\theta}(s)
+\]
+and assume \( \Theta \subseteq \mathbb{R}^d \) open\note{For differentiability reasons.}.To simplify the exposition, we furthermore assume from now on, that we are in a finite time horizon setting.\note{This lets us not worry about interchanging infinite series and differentiation.}
+
+
+\emph{Assumption:} There exists \( N \in \mathbb{N}_{0} \) such that 
+\[
+    S_{N+1} \in S_\dagger, \quad \mathbb{P}_s^\pi\text{-a.s.} \text{ for all } \pi \in \Pi, s \in S.
+\]
+This assumption means that any episode runs for at most 
+\( N + 1 \) time steps.
+
+\begin{theorem}[Policy Gradients]
+Suppose that each \( \pi_\theta, \theta \in \Theta\) is soft and
+\[
+    \theta \mapsto \pi_\theta(a|s), \,\, \theta \in \Theta
+\]
+is continuously differentiable for all \( (s,a) \in S \times A \). 
+Then \( \theta \mapsto v(\theta) \) is continuously differentiable and
+\[
+    Dv(\theta) = \mathbb{E}_s^{\pi_\theta} \left[ \sum_{n = 0}^N \big( D \left[ \log(\pi_\theta(A_n | S_n)) \right] \cdot \sum_{m = n}^N \gamma^m r(S_m, A_m)\big) \right].
+\]
+\end{theorem}
+
+\begin{proof}
+\begin{enumerate}[(i)]
+    \item First, note that 
+    \begin{align*}
+        &v(\theta) \\
+        &= v^{\pi_\theta}(s) \\
+        &= \mathbb{E}_s^{\pi_\theta} \left[ \sum_{n=0}^\infty \gamma^n r(S_n, A_n) \right]\\
+        &= \mathbb{E}_s^{\pi_\theta} \left[ \sum_{ n=0}^N \gamma^n r(S_n, A_n) \right]\note{Since we assume finite time horizon.}\\
+        &= \sum_{(s_{0},a_{0}),\mydots,(s_N, a_N) \in S \times A}\, \sum_{ n = 0}^N \gamma^n r(s_n, a_n) \mathbb{P}_s^{\pi_\theta} \left[ S_{0} = s_{0}, A_{0} = a_{0},\mydots, S_N = s_N, A_N = a_N \right]\\
+        &= \sum_{(s_{0},a_{0}),\mydots,(s_N, a_N) \in S \times A}\, \sum_{ n = 0}^N \gamma^n r(s_n, a_n) \delta_s[{s_{0}}] \pi_\theta(a_{0}|s_{0}) \prod_{k=1}^{N} p(s_k | s_{k-1}, a_{k-1}) \pi_\theta(a_k, s_k)
+    \end{align*}
+    From this and our assumption, we see that \( \theta \mapsto v(\theta) \) is cont. differentiable. 
+
+    \item We compute the gradient of \( \mathbb{P}_s^{\pi_\theta} \left[ S_{0} = s_{0}, A_{0} = a_{0},\mydots, S_N = s_N, A_N = a_N \right] \).
+    Using that for any event \( B \in \mathcal{A} \) with \( \mathbb{P}_s^{\pi_\theta}[B] > 0 \)  we have
+    \begin{align*}
+         D\mathbb{P}_s^{\pi_\theta}[B] &= \frac{D\mathbb{P}_s^{\pi_\theta}[B]}{\mathbb{P}_s^{\pi_\theta}[B]} \cdot \mathbb{P}_s^{\pi_\theta}[B] \\
+         &= D \log(\mathbb{P}_s^{\pi_\theta}[B]) \cdot \mathbb{P}_s^{\pi_\theta}[B],
+    \end{align*}
+    it follows that 
+    \begin{align*}
+        &\mathbb{P}_s^{\pi_\theta} \left[ S_{0} = s_{0}, A_{0} = a_{0},\mydots, S_N = s_N, A_N = a_N \right] \\
+        &= D \left[ \log(\mathbb{P}_s^{\pi_\theta} \left[ S_{0} = s_{0}, A_{0} = a_{0},\mydots, S_N = s_N, A_N = a_N \right]) \right] \cdot \mathbb{P}_s^{\pi_\theta} \left[ S_{0} = s_{0}, A_{0} = a_{0},\mydots, S_N = s_N, A_N = a_N \right]\\
+        &= D \left[ \log(\delta_s[\left\{ s_{0} \right\}]) +  \sum_{k=1}^N \log(p(s_k|s_{k-1, a_{k-1}})) + \sum_{k=0}^N \log(\pi_\theta(a_k|s_k)) \right]\\
+        &\qquad \qquad \qquad \cdot \mathbb{P}_s^{\pi_\theta} \left[ S_{0} = s_{0}, A_{0} = a_{0},\mydots, S_N = s_N, A_N = a_N \right]\\
+        &= \sum_{k=0}^N D[\log(\pi_\theta(a_k | s_k))] \cdot \mathbb{P}_s^{\pi_\theta} \left[ S_{0} = s_{0}, A_{0} = a_{0},\mydots, S_N = s_N, A_N = a_N \right].
+    \end{align*}
+
+    \item Using (ii) it follows that 
+
+    \begin{align*}
+        Dv(\theta) &= \sum_{(s_{0},a_{0}),\mydots,(s_N, a_N) \in S \times A}\, \sum_{ n = 0}^N \gamma^n r(s_n, a_n) D\mathbb{P}_s^{\pi_\theta} \left[ S_{0} = s_{0}, A_{0} = a_{0},\mydots, S_N = s_N, A_N = a_N \right]\\
+        &= \sum_{(s_{0},a_{0}),\mydots,(s_N, a_N) \in S \times A}\, \sum_{ n = 0}^N \gamma^n r(s_n, a_n) \sum_{k=0}^N D \left[ \log(\pi_\theta(a_k|s_k)) \right]  \cdot \mathbb{P}_s^{\pi_\theta} \left[ S_{0} = s_{0}, A_{0} = a_{0},\mydots, S_N = s_N, A_N = a_N \right]\\
+        &= \mathbb{E}_s^{\pi_\theta} \left[ \sum_{k=0}^N D [\log(\pi_\theta(A_k | S_k))] \sum_{n=0}^N  \gamma^n r(S_n, A_n) \right]\\
+        &= \sum_{n,m = 0}^N \mathbb{E}_s^{\pi_\theta}  \bigg[  D[\log(\pi_\theta(A_n | S_n))] \gamma^m r(S_m, A_m) \bigg].
+    \end{align*}
+
+    \item It remains to show that
+    \[
+        \mathbb{E}_s^{\pi_\theta} \left[  D [\log(\pi_\theta(A_n | S_n))] r(S_m, A_m) \right] = 0 \text{ if } m < n.
+    \]
+    For this, note that
+    \begin{align*}
+        &\quad \mathbb{E}_s^{\pi_\theta} \left[  D [\log(\pi_\theta(A_n | S_n))] r(S_m, A_m) \right]\\
+        &= \sum_{(s_{0},a_{0}),\mydots,(s_N, a_N) \in S \times A} D [\log(\pi_\theta(a_n,s_n))] r(s_m, a_m) \cdot \mathbb{P}_s^{\pi_\theta} \left[ S_{0} = s_{0}, A_{0} = a_{0},\mydots, S_N = s_N, A_N = a_N \right]\\
+        &= \sum_{s_{0} \in S} \sum_{a_{0} \in A} \mydots \sum_{s_n \in S} \sum_{ a_n \in A} D [\log(\pi_\theta(a_n | s_n))] r(s_m, a_m)\\
+        & \qquad \qquad \cdot \delta_s[\left\{ s_{0} \right\}] \pi_\theta(a_{n},s_{n}) \prod_{k=1}^n p(s_k | s_{k-1}, a_{k-1}) \pi_\theta(a_{k-1} | s_{k-1})\\
+        &= \sum_{s_{0} \in S} \sum_{a_{0} \in A} \mydots \sum_{s_m \in S} \sum_{ a_m \in A} \delta_s[\left\{ s_{0} \right\}] \prod_{k=1}^m p(s_k | s_{k-1, a_{k-1}}) \pi_\theta(a_{k-1 | s_{k-1}}) \sum_{a_m \in A} \pi_\theta(a_m | s_m) r(s_m, a_m) \\
+        & \qquad \qquad \cdot \sum_{s_{m+1} \in S} p(s_{m+1} | s_m, a_m) \sum_{a_{m+1} \in A} \pi_\theta(a_{m+1} | s_{m+1}) \\
+        & \qquad \qquad \cdot \mydots\\
+        & \qquad \qquad \cdot \sum_{s_{n} \in S} p(s_{n} | s_{n-1}, a_{n-1}) \sum_{a_{n} \in A} \pi_\theta(a_{n} | s_{n}) D \log(\pi_\theta(a_n | s_n))\\
+        &= 0,
+    \end{align*}
+    since the last sum 
+    \[
+       \sum_{a_{n} \in A} \pi_\theta(a_{n} | s_{n}) D \log(\pi_\theta(a_n | s_n)) = \sum_{a_n \in A} D \pi_\theta(a_n | s_n) = D \sum_{a_n \in A} \pi_\theta(a_n |s_n) = D 1 = 0.
+    \]
+\end{enumerate}    
+\end{proof}
+
+
+
+Having computed the gradient of \( v(\theta) \), it follows that the updating rule for GA with learning rate \( \alpha > 0 \) becomes
+\begin{align*}
+    \theta_{t+1} &= \theta_t + \alpha \cdot Dv(\theta) \\
+            &= \theta_t + \alpha \cdot \mathbb{E}_s^{\pi_\theta} \left[  \sum_{ n=0}^N D[\log(\pi_\theta(A_n | S_n))] \sum_{m=n}^N \gamma^m r(S_m, A_m) \right], \,\, t \in \mathbb{N}_{0}
+\end{align*}  
+for some initial parameter \( \theta_{0} \in \Theta \).
+
+In practice however, we typically do not have a means to compute the actual expectation in the update rule. Hence we estimate the expectation using Monte Carlo, leading to an update rule of the form
+
+\begin{equation}\label{REINFORCE update rule}\tag{\textasteriskcentered}
+     \theta_{t+1} = \theta_t + \alpha \cdot \sum_{ n = 0}^N D \log(\pi_{\theta_t}(A_n^{t+1} | s_n^{t+1})) \sum_{m=n}^N \gamma^m r(S_m^{t+1}, A_m^{t+1}), \,\, t \in \mathbb{N}_{0}.
+\end{equation}
+In general, using Monte Carlo estimates in GA as above is referred to as
+\emph{stochastic gradient ascent (SGA)}. Hence, we move in the direction of steepest ascent only in the mean.
+
+The application of SGA to MDPs in \eqref{REINFORCE update rule} is referred to as the \emph{REINFORCE} algorithm.
+Being based on GA, we note that there is generally no guarantee that REINFORCE converges to a global maximum, but can be shown to converge to a stationary point of \( v(\theta) \) under appropriate conditions. 
+
+
+
+
+
+
+
+
+
+
+
+
+
 \end{document}
