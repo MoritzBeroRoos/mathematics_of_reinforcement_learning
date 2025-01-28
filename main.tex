@@ -1320,7 +1320,7 @@ and assume \( \Theta \subseteq \mathbb{R}^d \) open\note{For differentiability r
 This assumption means that any episode runs for at most 
 \( N + 1 \) time steps.
 
-\begin{theorem}[Policy Gradients]
+\begin{theorem}[Policy Gradients]\label{thm_policy_gradients}
 Suppose that each \( \pi_\theta, \theta \in \Theta\) is soft and
 \[
     \theta \mapsto \pi_\theta(a|s), \,\, \theta \in \Theta
@@ -1424,4 +1424,168 @@ Being based on GA, we note that there is generally no guarantee that REINFORCE c
 
 
 
+
+\subsection{Actor-Critic Methods}
+
+The downside of REINFORCE is that every update of the policy's parameters requires the simulation of an entire episode to compute 
+\[
+    \sum_{n=0}^N D \log(\pi_{\theta_t} (A_n^{t+1} | S_n^{t+1})) \sum_{m=n}^N \gamma^m r(S_m^{t+1}, A_m^{t+1})
+\]
+\begin{theorem}[Policy Gradients in terms of Action-Value Functions]\label{policy_gradients_action_value}
+    Suppose that each \( \pi_\theta \in \Theta \) is soft and 
+    \[
+        \theta \mapsto \pi_\theta(a|s), \,\, \theta \in \Theta
+    \]
+    is continuously differentiable for all \( (s,a) \in S \times A \). Then 
+    \( \theta \mapsto v(\theta) \) is continuously differentiable and
+    \[
+        D v(\theta) = \mathbb{E}_s^{\pi_\theta} \left[ \sum_{ n = 0}^N D \log(\pi_\theta(A_n | S_n)) \gamma^n Q^{\pi_\theta}(S_n | A_n) \right].
+    \]  
+\end{theorem}
+\begin{proof}
+    By \cref{thm_policy_gradients}, we know that \( v \) is continuously differentiable and
+    \[
+        Dv(\theta) = \sum_{n=0}^N \mathbb{E}_s^{\pi_\theta} \left[ D \log(\pi_\theta(A_n | S_n)) \sum_{ m=n}^N \gamma^m r(S_m, A_m) \right].
+    \] 
+    Thus, it suffices to show that 
+    \begin{align*}
+        &\mathbb{E}_s^{\pi_\theta} \left[ D \log(\pi_\theta(A_n | S_n)) \sum_{m=n}^N \gamma^m r(S_m, A_m) \right] \\
+        = & \mathbb{E}_s^{\pi_\theta} \left[ D \log(\pi_\theta(A_n | S_n)) Q^{\pi_\theta}(S_n | A_n) \right]
+    \end{align*}
+    for all \( n = 0,1,\mydots,N \).
+    
+    
+    For any such \( n \), we have 
+    \begin{align*}
+        &\mathbb{E}_s^{\pi_\theta} \left[ D \log(\pi_\theta(A_n|S_n)) \sum_{m=n}^N \gamma^m r(S_m, A_m) \right] \\
+        &= \sum_{(s_{0},a_{0}),\mydots,(s_N,a_n) \in S \times A} \gamma^n D \log(\pi_\theta(a_n | s_n)) \left[ r(s_n,a_n) + \sum_{m = n+1}^N \gamma^{m-n} r(s_m, a_m) \right]\\
+        & \qquad \qquad \cdot \mathbb{P}_s^{\pi_\theta} \left[ S_{0} = s_{0}, A_{0} = a_{0},\mydots, S_N = s_N, A_N = a_N \right]\\
+        &= \note{since \( S_N \) is terminal. Define \( S_{N+1} := S_N \) etc.  } \gamma^n \sum_{\mydots} D \log(\pi_\theta(a_n | s_n)) \left[ r(s_n, a_n) + \gamma \sum_{m=0}^{N-n-1} \gamma^m r(s_{m+n+1}, a_{m+n+1}) \right]\\
+        & \qquad \qquad \cdot \mathbb{P}_s^{\pi_\theta} \left[ S_{0}=s_{0}, A_{0}=a_{0},\mydots,S_{N+n+1} = s_{N+n+1}, A_{N+n+1} = a_{N+n+1} \,|\, S_{0} = s_{0}, A_{0}=a_{0},\mydots, S_n = s_n, A_n = a_n \right]\\
+        & \qquad \qquad \cdot \mathbb{P}_s^{\pi_\theta} \left[  S_{0} = s_{0}, A_{0}=a_{0},\mydots, S_n = s_n, A_n = a_n \right]\\
+        &= \note{Using the Markov Property.} \gamma^n \sum_{\mydots} \left[ D \log(\pi_\theta(a_n | s_n)) \left[ r(s_n, a_n) + \right. \right.\\
+        &\qquad \qquad \left. \left. \gamma \sum_{(s_{n+1}, a_{n+1}),\mydots, (s_N, a_N) \in S \times A} \sum_{m=0}^N \gamma^m r(s_{m+n+1}, a_{m+n+1}) \right. \right.\\ 
+        &\left. \left. \cdot \mathbb{P}_s^{\pi_\theta} \left[ S_{n+1} = s_{n+1},\mydots, S_{N+n+1} = s_{N+n+1}, A_{N+n+1} = a_{N+n+1} \,|\, S_n = s_n, A_n = a_n \right] \right] \right]\\
+        &= \note{\qquad \qquad \qquad \,Time shift, as in \cref{time_shift_lemma}} \gamma^n \sum_{\mydots} \left[ D \log(\pi_\theta(a_n | s_n)) \left[ r(s_n,a_n) + \gamma \sum_{s_{n+1} \in S} p(s_{n+1} | s_n, a_n) \mathbb{E}_{s_{n+1}}^{\pi_\theta} \left[ \sum_{m=0}^N \gamma^m r(S_m, A_m) \right] \right] \right]\\
+        & \qquad \qquad \cdot \mathbb{P}_s^{\pi_\theta} \left[ S_{0}=s_{0}, A_{0}=a_{0},\mydots,S_n = s_n, A_n = a_n \right]\\
+        &= \gamma^n \mathbb{E}_s^{\pi_\theta} \left[  D \log(\pi_{\theta}(A_n | S_n)) Q^{\pi_\theta}(S_n | A_n) \right],
+    \end{align*} 
+    since
+    \[
+        \mathbb{E}_{s_{n+1}}^{\pi_\theta} \left[ \sum_{m=0}^N \gamma^m r(S_m, A_m) \right] = V^{\pi_\theta}(s_{n+1})
+    \]
+    and thereofore 
+    \[
+        r(s_n,a_n) + \gamma \sum_{s_{n+1} \in S} p(s_{n+1} | s_n, a_n) \mathbb{E}_{s_{n+1}}^{\pi_\theta} \left[ \sum_{m=0}^N \gamma^m r(S_m, A_m) \right] = Q^{\pi_\theta}(s_n, a_n).
+    \]
+\end{proof}
+
+
+\cref{policy_gradients_action_value} sheds some new light onto REINFORCE. Recall that 
+\[
+    \theta_{t+1} = \theta_t + \alpha \sum_{n=0}^{N} D \log(\pi_{\theta_{t}}(A_n^{t+1} | S_n^{t+1} )) \sum_{m=n}^N \gamma^m r(S_m^{t+1}, A_m^{t+1}),
+\]
+
+so that we see that 
+\[
+    \sum_{m=n}^N \gamma^m r(S_m^{t+1}, A_m^{t+1})
+\]
+is essentially an estimate of 
+\[
+    \gamma^n Q^{\pi_{\theta_{t}}(S_n^{t+1}, A_{n}^{t+1})}
+\]
+for all \( n=0,1,\mydots,N \).
+
+The idea behind actor-critic methods is to replace this estimate by an alternative approximation of the action-value function and alternating between 
+
+\begin{itemize}
+    \item updating the policy (\emph{actor step})
+    \item updating the approximation of the action-value function (\emph{critic step}).
+\end{itemize}
+
+Before digging deeper, we need one additional result.
+
+\begin{lemma}[Policy Gradients with baseline]
+    In the setting of theorem \cref{policy_gradients_action_value}, let there be a function \( b: S \to \mathbb{R} \) called \emph{baseline}. Then \( \theta \mapsto v(\theta) \) is continuously differentiable and 
+    \[
+        D v(\theta) = \mathbb{E}_s^{\pi_\theta} \left[ \sum_{n=0}^{N D \log(\pi_\theta (A_n | S_n))} \gamma^n \left[ Q^{\pi_\theta}(S_n | A_N) - b(S_n) \right] \right].
+    \]
+\end{lemma}
+\begin{proof}[Proof idea]
+Show that, for each \( n =  0,1,\mydots,N \)
+    \[
+        \gamma^n \mathbb{E}_s^{\pi_\theta} \left[ D \log(\pi_\theta(A_n | S_n)) b(S_n) \right] = 0.
+    \]
+\end{proof}
+
+In general, the role of the baselie \( b \) is to reduce variances in the SGA step of REINFORCE. In actor-critic methods one often chooses \( b = V^{\pi_\theta} \). Writing 
+\[
+    A^{\pi_\theta} := Q^{\pi_\theta}(s|a) - V^{\pi_\theta}(s), \,\, (s,a) \in S \times A.
+\]  
+The update rule with this choice of baseline becomes 
+\[
+     \theta_{t+1} = \theta_t + \alpha \sum_{n=0}^N D \log( \pi_\theta(A_n^{t+1} | S_n^{t+1}) ) A^{\pi_\theta}(S_n^{t+1}, A_n^{t+1}), t \in \mathbb{N}_{0}.
+\]
+The function 
+\( A^{\pi_\theta} \) is called \emph{advantage function} of \( \pi_\theta \), as 
+\begin{align*}
+    A^{\pi_\theta}(s,a) &= Q^{\pi_\theta}(s|a) - V^{\pi_\theta}(s) \\
+                 &= Q^{\pi_\theta}(s|a) - \sum_{a' \in A} \pi_\theta(a' | s) Q^{\pi_\theta}(s|a'),
+\end{align*}  
+we can interpret \( A^{\pi_\theta}(s,a) \) as the advantage of choosing action a over the average action chosen from \( \pi_\theta \). The so-called \emph{Advantage Actor-Critic} (A2C) Methods use a parametric family of functions to approximate \( A^{\pi_\theta} \).
+To do so, a common approach, is to first write 
+\begin{align*}
+    A^{\pi_\theta}(s,a) & = Q^{\pi_\theta}(s|a) - V^{\pi_\theta}(s)                                        \\
+                        & = r(s,a) + \gamma \sum_{s' \in S} p(s' | s,a) V^{\pi_\theta}(s') - V^{\pi_\theta}(s).
+\end{align*}
+We see two things:
+\begin{itemize}
+    \item An unbiased estimate of \( A^{\pi_\theta} \) given \( V^{\pi_\theta} \) is 
+    \[
+         A^{\pi_\theta}(s,a) \approx r(s,a) + \gamma V^{\pi_\theta}(\hat{S}) - V^{\pi_\theta}(s),
+    \] where \( \hat{S} \) is sampled according to \( s' \mapsto p(s' | s,a) \).
+    \item It is enough to approximate \( V^{\pi_\theta} \) instead of \( A^{\pi_\theta} \).
+\end{itemize}
+ For this, we now take as given a family \( \left\{ V_\xi \right\}_{ \xi \in \Xi} \) of approximating functions with \( \Xi \subseteq \mathbb{R}^{d'} \). For a fixed state \( s \in S \), we want to minimize
+ \begin{align*}
+      & \frac{1}{2} (V^{\pi_\theta}(s) - V_{\xi}(s))^2                                                                                 \\
+      & = \frac{1}{2} ( \mathbb{E}_s^{\pi_\theta} \left[ \sum_{ n=0}^N \gamma^n r(S_n, A_n) \right] - V_{\xi}(s) )^2 \text{ ove } \xi.
+ \end{align*}
+ For a learning rate \( \beta > 0  \), GD suggests to choose an update rule of the form
+ \begin{align*}
+     \xi_{t+1} &= \xi_{t} - \beta D_{\xi} \left[ \frac{1}{2}(V^{\pi_\theta}(s) - V_{\xi_t}(s))^2 \right] \\
+     &= \xi_t + \beta (V^{\pi_\theta}(s) - V_{\xi_t}(s)) D_\xi V_{\xi_{t}}(s), \,\, t \in \mathbb{N}_{0}.
+ \end{align*}
+ However, \( V^{\pi_\theta}(s) \) is unknown, so it is replaced by an estimate such as Monte-Carlo.
+
+
+
+ Putting everything together, we arrive at the following algorithm: \emph{A2C (Full Moneta Carlo Version)}:
+ \begin{itemize}
+     \item Choose \( \alpha, \beta > 0, \theta_{0} \in \Theta, \xi_{0} \in \Xi\)
+     \item loop t = 0,1,2,... (number of episodes)
+     \begin{itemize}
+         \item sample an episode \( S_{0}^{t+1}, A_{0}^{t+1},\mydots,S_N^{t+1}, A_N^{t+1} \) according to \( \pi_{\theta_t} \).
+         \item update 
+         \[
+             \xi_{t+1} = \xi_t + \beta \left[ \sum_{n=0}^N \gamma^n r(S_n^{t+1}, A_n^{t+1}) - V_{\xi_t}(S_{0}^{t+1}) \right] D_\xi V_{\xi_t}(S_{0}^{t+1})
+         \]  
+         \item define 
+         \begin{align*}
+             &\hat{A}_{t+1}(S_n^{t+1}, A_n^{t+1}) := r(S_n^{t+1}, A_n^{t+1}) + \gamma V_{\xi_{t + 1}}(S_{n+1}^{t+1}) - V_{\xi_{t+1}}(S_n^{t+1}),\\
+             & \qquad \qquad n= 0,1,\mydots,N-1\\
+             &\hat{A}_{t+1}(S_N^{t+1}, A_N^{t+1}) := 0
+         \end{align*}
+         \item update 
+         \[
+             \theta_{t+1} = \theta_{t} + \alpha \sum_{ n = 0}^N D \log(\pi_{\theta_t}(A_{n}^{t+1} | S_n^{t+1} )) \hat{A}_{t+1}(S_n^{t+1}, A_n^{t+1})
+         \]
+     \end{itemize} 
+ \end{itemize}
+
+Since there are so many approximations and estimates included, there is little hope to establish conditions which guarantee convergence to an optimal policy.
+
+\begin{center}
+    \emph{Content relevant for the exam ends here.}
+\end{center}
 \end{document}
