@@ -910,7 +910,7 @@ Some tricks to make the estimation more efficient in practice:
     \end{align*}
 \end{itemize}
  
-Irrespective of whether or not a state has been visited before in the roll out, or not. This causes dependence between reward samples \emph{within} estimates of \( V^\pi(s_n^m) \) as soon as \( s_N^m \) is visited more than once in a roll out. This is called \emph{every visit Moneta-Carlo estimation}. Here (atleast the standard formulation of) the Law of large numbers can't be applied anymore, so it isn't clear at all, if this method will give convergence. It seems to work well in practice though.
+Irrespective of whether or not a state has been visited before in the roll out, or not. This causes dependence between reward samples \emph{within} estimates of \( V^\pi(s_n^m) \) as soon as \( s_N^m \) is visited more than once in a roll out. This is called \emph{every visit Monte-Carlo estimation}. Here (atleast the standard formulation of) the Law of large numbers can't be applied anymore, so it isn't clear at all, if this method will give convergence. It seems to work well in practice though.
  
 \subsection*{Temporal difference estimation:}
 
@@ -1560,7 +1560,7 @@ We see two things:
 
 
 
- Putting everything together, we arrive at the following algorithm: \emph{A2C (Full Moneta Carlo Version)}:
+ Putting everything together, we arrive at the following algorithm: \emph{A2C (Full Monte Carlo Version)}:
  \begin{itemize}
      \item Choose \( \alpha, \beta > 0, \theta_{0} \in \Theta, \xi_{0} \in \Xi\)
      \item loop t = 0,1,2,... (number of episodes)
