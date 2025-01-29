@@ -897,7 +897,7 @@ Some tricks to make the estimation more efficient in practice:
     \[
         s_n^m \notin \left\{ s_{0}^m, s_{1}^m, \mydots, s_{n-1}^m \right\}
     \]
-    we can think of \( (s_j^m, a_j^m, r_j^m), j=n,\mydots,N \) as a roll out with initial state \( s_n^m  \). This approach is called \emph{first visit Moneta Carlo estimation}.
+    we can think of \( (s_j^m, a_j^m, r_j^m), j=n,\mydots,N \) as a roll out with initial state \( s_n^m  \). This approach is called \emph{first visit Monte Carlo estimation}.
     The advantage is, that it requires less samples, compared to the original approach, in which each roll-out is only used once.
     The disadvantage is that the estimates for \( V^\pi(s_{0}^m) \) and \( V^\pi(s_n^m) \) become stochastically dependent, as they use realizations from the same random variables \( (S_j^m, A_j^m), j = n,\mydots,N \). However, the Law or Large numbers doesnt break down in this case yet.
     
